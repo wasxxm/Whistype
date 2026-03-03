@@ -10,13 +10,14 @@ final class TranscriptionCoordinator: ObservableObject {
     @Published private(set) var loadingStatus: ModelLoadingStatus = .idle
 
     private let audioRecorder: AudioRecording
-    private let transcriptionService: Transcription
+    private var transcriptionService: Transcription
     private let hotkeyService: HotkeyBinding
     private let pasteService: OutputPasting
     private let permissions: PermissionsChecking
 
     private var modelContainer: ModelContainer?
     private var cancellables = Set<AnyCancellable>()
+    private var loadingStatusCancellable: AnyCancellable?
     private var autoPasteEnabled: Bool {
         UserDefaults.standard.bool(forKey: "autoPasteEnabled")
     }
@@ -103,12 +104,24 @@ final class TranscriptionCoordinator: ObservableObject {
     }
 
     private func setupLoadingStatusMonitor() {
-        transcriptionService.loadingStatusPublisher
+        loadingStatusCancellable = transcriptionService.loadingStatusPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] status in
                 self?.loadingStatus = status
             }
-            .store(in: &cancellables)
+    }
+
+    func switchEngine(to service: Transcription) async {
+        guard case .idle = state else {
+            NSLog("[Whistype] Cannot switch engine while %@ is active", "\(state)")
+            return
+        }
+        NSLog("[Whistype] Switching engine")
+        transcriptionService = service
+        isModelLoaded = false
+        loadingStatus = .idle
+        setupLoadingStatusMonitor()
+        await loadModel()
     }
 
     // MARK: - Recording

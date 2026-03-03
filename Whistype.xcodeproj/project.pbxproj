@@ -26,9 +26,9 @@
 		881539DEF96BB8C937556670 /* PermissionsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D647FD99F1B815BA4E4056EE /* PermissionsManager.swift */; };
 		A89CF4BDE249F88D271A7069 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = EB5EAEDC1B90F8B5DB22E9A3 /* WhisperKit */; };
 		AA054CA0E53E798650054F5C /* Qwen3ASR in Frameworks */ = {isa = PBXBuildFile; productRef = 417522F06FADA8D85F06CC10 /* Qwen3ASR */; };
-		AB9BFB2796D8969386B3A506 /* FreeWhisperApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 027BCEE9F1E4544B745DDE91 /* FreeWhisperApp.swift */; };
 		AD99EA5C14596E4B2E5E5645 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0594700680E88276AFC72EF /* MenuBarView.swift */; };
 		B437114338077349BF176A81 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF51BFFDD538F4E130DC827D /* HistoryView.swift */; };
+		CAE10BA953AE2647CDD3A3DE /* WhistypeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB188B8F95BD79844A3BC8E1 /* WhistypeApp.swift */; };
 		D2B60EE0D77AA74B9691394E /* DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67F322684C4C8FE1782879BD /* DependencyContainer.swift */; };
 		D827AA47537514CA6F6AC189 /* WhisperTranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F25ABB7E203B06372A10DDB /* WhisperTranscriptionService.swift */; };
 		DA788B58F0727068CE6772D6 /* Qwen3TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 398C73086B1E747FB8F2E3D3 /* Qwen3TranscriptionService.swift */; };
@@ -40,7 +40,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		027BCEE9F1E4544B745DDE91 /* FreeWhisperApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeWhisperApp.swift; sourceTree = "<group>"; };
 		0AB421A2675D6B6041383EEC /* PermissionsChecking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsChecking.swift; sourceTree = "<group>"; };
 		1B7F0040286E749E7752A7CD /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		290BA8DF25CE6FA3A3A7BD45 /* OutputPasting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputPasting.swift; sourceTree = "<group>"; };
@@ -54,6 +53,7 @@
 		966140FD49A0B52BDD03A1E7 /* FloatingCapsuleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingCapsuleView.swift; sourceTree = "<group>"; };
 		9D9605856C8FB42A5389062E /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A1BB93FB3816E78A94BB9657 /* AudioLevelIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioLevelIndicator.swift; sourceTree = "<group>"; };
+		AB188B8F95BD79844A3BC8E1 /* WhistypeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhistypeApp.swift; sourceTree = "<group>"; };
 		AB78D74B00CCB025C8E8F3E6 /* TranscriptionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionState.swift; sourceTree = "<group>"; };
 		B0594700680E88276AFC72EF /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		B2678FA584B2019DDA6B3FF1 /* PasteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteService.swift; sourceTree = "<group>"; };
@@ -106,7 +106,7 @@
 			children = (
 				4517B842D37A407103A36530 /* AppDelegate.swift */,
 				67F322684C4C8FE1782879BD /* DependencyContainer.swift */,
-				027BCEE9F1E4544B745DDE91 /* FreeWhisperApp.swift */,
+				AB188B8F95BD79844A3BC8E1 /* WhistypeApp.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -316,7 +316,6 @@
 				D2B60EE0D77AA74B9691394E /* DependencyContainer.swift in Sources */,
 				EBC9BA525E9CB788C8A837A9 /* FloatingCapsuleView.swift in Sources */,
 				5D1F2D3A93BCF5685F7D2451 /* FloatingCapsuleWindow.swift in Sources */,
-				AB9BFB2796D8969386B3A506 /* FreeWhisperApp.swift in Sources */,
 				3030D1AC9CAFC11536F16B22 /* GeneralSettingsTab.swift in Sources */,
 				B437114338077349BF176A81 /* HistoryView.swift in Sources */,
 				5A260C0361F2F23575510FC3 /* HotkeyBinding.swift in Sources */,
@@ -334,6 +333,7 @@
 				45485A6F4995F03A864D1C32 /* TranscriptionRecord.swift in Sources */,
 				3372BAC532CF6071DD4AEFD8 /* TranscriptionState.swift in Sources */,
 				D827AA47537514CA6F6AC189 /* WhisperTranscriptionService.swift in Sources */,
+				CAE10BA953AE2647CDD3A3DE /* WhistypeApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
