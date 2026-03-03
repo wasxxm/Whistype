@@ -1,12 +1,20 @@
+import Combine
 import Foundation
 import WhisperKit
 
 final class WhisperTranscriptionService: Transcription {
     private(set) var isModelLoaded = false
+
+    var loadingStatusPublisher: AnyPublisher<ModelLoadingStatus, Never> {
+        loadingStatusSubject.eraseToAnyPublisher()
+    }
+
+    private let loadingStatusSubject = CurrentValueSubject<ModelLoadingStatus, Never>(.idle)
     private var whisperKit: WhisperKit?
 
     func loadModel(name: String) async throws {
-        // Step 1: Initialize WhisperKit without loading or downloading yet
+        loadingStatusSubject.send(.downloading(progress: 0))
+
         let config = WhisperKitConfig(
             model: name,
             verbose: true,
@@ -17,18 +25,21 @@ final class WhisperTranscriptionService: Transcription {
         )
         let kit = try await WhisperKit(config)
 
-        // Step 2: Download model (or use local cache if already downloaded)
-        let modelFolder = try await WhisperKit.download(variant: name)
+        let modelFolder = try await WhisperKit.download(variant: name) { [weak self] progress in
+            let fraction = progress.fractionCompleted
+            self?.loadingStatusSubject.send(.downloading(progress: fraction))
+        }
         kit.modelFolder = modelFolder
 
-        // Step 3: Prewarm models (compiles CoreML for this device)
+        loadingStatusSubject.send(.prewarming)
         try await kit.prewarmModels()
 
-        // Step 4: Load models into memory
+        loadingStatusSubject.send(.loading)
         try await kit.loadModels()
 
         whisperKit = kit
         isModelLoaded = true
+        loadingStatusSubject.send(.ready)
     }
 
     func transcribe(samples: [Float]) async throws -> String {
