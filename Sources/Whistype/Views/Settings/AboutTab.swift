@@ -31,7 +31,7 @@ struct AboutTab: View {
                 .padding(.top, 8)
 
             VStack(spacing: 6) {
-                infoRow(label: "Engines", value: "WhisperKit / Qwen3-ASR")
+                infoRow(label: "Engines", value: "WhisperKit / Qwen3-ASR / Parakeet")
                 infoRow(label: "License", value: "MIT")
             }
             .padding(.top, 20)

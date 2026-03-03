@@ -11,6 +11,7 @@
 		173AF26707929ACF39CC6087 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3D0FC52E0F7107A730511ED /* SettingsView.swift */; };
 		25422EB91B822A4C97E944D0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4517B842D37A407103A36530 /* AppDelegate.swift */; };
 		2A0502FFAB118A2C2AEE823D /* OutputPasting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 290BA8DF25CE6FA3A3A7BD45 /* OutputPasting.swift */; };
+		2E726427C97F6227455CB762 /* ParakeetASR in Frameworks */ = {isa = PBXBuildFile; productRef = 39F0821EBF370506ABB1A8FA /* ParakeetASR */; };
 		3030D1AC9CAFC11536F16B22 /* GeneralSettingsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F810BCB6A9ECA5350B4EEA /* GeneralSettingsTab.swift */; };
 		3372BAC532CF6071DD4AEFD8 /* TranscriptionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB78D74B00CCB025C8E8F3E6 /* TranscriptionState.swift */; };
 		45485A6F4995F03A864D1C32 /* TranscriptionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = E073D87000F51C6229065536 /* TranscriptionRecord.swift */; };
@@ -30,6 +31,7 @@
 		AACD23FF1D5E76F7C898F625 /* MenuBarIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1633BFD02A5E717F52345742 /* MenuBarIcon.swift */; };
 		AD99EA5C14596E4B2E5E5645 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0594700680E88276AFC72EF /* MenuBarView.swift */; };
 		B437114338077349BF176A81 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF51BFFDD538F4E130DC827D /* HistoryView.swift */; };
+		BC1DE40F6D9ACDC8A8A25297 /* ParakeetTranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21459FF6B979F14C934CDE1D /* ParakeetTranscriptionService.swift */; };
 		CAE10BA953AE2647CDD3A3DE /* WhistypeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB188B8F95BD79844A3BC8E1 /* WhistypeApp.swift */; };
 		D2B60EE0D77AA74B9691394E /* DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67F322684C4C8FE1782879BD /* DependencyContainer.swift */; };
 		D827AA47537514CA6F6AC189 /* WhisperTranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F25ABB7E203B06372A10DDB /* WhisperTranscriptionService.swift */; };
@@ -47,6 +49,7 @@
 		0D5A8FBB865A22F6DC5E8F2C /* TranscriptionError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionError.swift; sourceTree = "<group>"; };
 		1633BFD02A5E717F52345742 /* MenuBarIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIcon.swift; sourceTree = "<group>"; };
 		1B7F0040286E749E7752A7CD /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		21459FF6B979F14C934CDE1D /* ParakeetTranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParakeetTranscriptionService.swift; sourceTree = "<group>"; };
 		290BA8DF25CE6FA3A3A7BD45 /* OutputPasting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputPasting.swift; sourceTree = "<group>"; };
 		398C73086B1E747FB8F2E3D3 /* Qwen3TranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Qwen3TranscriptionService.swift; sourceTree = "<group>"; };
 		3F25ABB7E203B06372A10DDB /* WhisperTranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperTranscriptionService.swift; sourceTree = "<group>"; };
@@ -84,6 +87,7 @@
 				A89CF4BDE249F88D271A7069 /* WhisperKit in Frameworks */,
 				F200A513AECE969A4212E5D2 /* HotKey in Frameworks */,
 				AA054CA0E53E798650054F5C /* Qwen3ASR in Frameworks */,
+				2E726427C97F6227455CB762 /* ParakeetASR in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -187,6 +191,7 @@
 			children = (
 				FD25F893A623A238DB460171 /* AudioRecorderService.swift */,
 				C76D497F0FFEAA2F780DA256 /* HotkeyService.swift */,
+				21459FF6B979F14C934CDE1D /* ParakeetTranscriptionService.swift */,
 				B2678FA584B2019DDA6B3FF1 /* PasteService.swift */,
 				D647FD99F1B815BA4E4056EE /* PermissionsManager.swift */,
 				398C73086B1E747FB8F2E3D3 /* Qwen3TranscriptionService.swift */,
@@ -275,6 +280,7 @@
 				EB5EAEDC1B90F8B5DB22E9A3 /* WhisperKit */,
 				12949B40B3E4B87DAD0B6A2E /* HotKey */,
 				417522F06FADA8D85F06CC10 /* Qwen3ASR */,
+				39F0821EBF370506ABB1A8FA /* ParakeetASR */,
 			);
 			productName = Whistype;
 			productReference = EE297BDB93BC4CBE0EA14D34 /* Whistype.app */;
@@ -342,6 +348,7 @@
 				AD99EA5C14596E4B2E5E5645 /* MenuBarView.swift in Sources */,
 				85DF680D1218056E565EBF5A /* OnboardingView.swift in Sources */,
 				2A0502FFAB118A2C2AEE823D /* OutputPasting.swift in Sources */,
+				BC1DE40F6D9ACDC8A8A25297 /* ParakeetTranscriptionService.swift in Sources */,
 				0689C6E2627F9D678D57D5C7 /* PasteService.swift in Sources */,
 				808782F5281E32C7B75ABFC9 /* PermissionsChecking.swift in Sources */,
 				881539DEF96BB8C937556670 /* PermissionsManager.swift in Sources */,
@@ -576,6 +583,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8CBB951D08EFB8AD688E4A92 /* XCRemoteSwiftPackageReference "HotKey" */;
 			productName = HotKey;
+		};
+		39F0821EBF370506ABB1A8FA /* ParakeetASR */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FB4D2BD99F83E555B104F849 /* XCRemoteSwiftPackageReference "qwen3-asr-swift" */;
+			productName = ParakeetASR;
 		};
 		417522F06FADA8D85F06CC10 /* Qwen3ASR */ = {
 			isa = XCSwiftPackageProductDependency;

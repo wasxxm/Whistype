@@ -1,9 +1,8 @@
 import Combine
 import Foundation
-import MLX
-import Qwen3ASR
+import ParakeetASR
 
-final class Qwen3TranscriptionService: Transcription {
+final class ParakeetTranscriptionService: Transcription {
     private(set) var isModelLoaded = false
 
     var loadingStatusPublisher: AnyPublisher<ModelLoadingStatus, Never> {
@@ -11,35 +10,28 @@ final class Qwen3TranscriptionService: Transcription {
     }
 
     private let loadingStatusSubject = CurrentValueSubject<ModelLoadingStatus, Never>(.idle)
-    private var model: Qwen3ASRModel?
+    private var model: ParakeetASRModel?
 
     func loadModel(name: String) async throws {
-        NSLog("[Whistype] Qwen3-ASR loadModel started")
+        NSLog("[Whistype] Parakeet-TDT loadModel started")
         loadingStatusSubject.send(.downloading(progress: 0))
 
-        // Allow MLX to reuse GPU buffers between inference runs
-        GPU.set(cacheLimit: 256 * 1024 * 1024)
-
         do {
-            let asrModel = try await Qwen3ASRModel.fromPretrained { [weak self] progress, _ in
+            let asrModel = try await ParakeetASRModel.fromPretrained { [weak self] progress, _ in
                 self?.loadingStatusSubject.send(.downloading(progress: progress))
             }
 
             loadingStatusSubject.send(.prewarming)
-            NSLog("[Whistype] Qwen3-ASR warming up Metal shaders…")
-
-            // Run a short dummy transcription to JIT-compile all Metal shaders
-            // across the 18 encoder + 28 decoder transformer layers
-            let warmupSamples = [Float](repeating: 0, count: 8000) // 0.5s silence
-            _ = asrModel.transcribe(audio: warmupSamples, sampleRate: 16000, language: "en")
+            NSLog("[Whistype] Parakeet-TDT warming up CoreML…")
+            try asrModel.warmUp()
 
             model = asrModel
             isModelLoaded = true
             loadingStatusSubject.send(.ready)
-            NSLog("[Whistype] Qwen3-ASR model ready (warmed up)")
+            NSLog("[Whistype] Parakeet-TDT model ready")
         } catch {
             loadingStatusSubject.send(.failed(message: error.localizedDescription))
-            NSLog("[Whistype] Qwen3-ASR model load failed: %@", error.localizedDescription)
+            NSLog("[Whistype] Parakeet-TDT model load failed: %@", error.localizedDescription)
             throw error
         }
     }
@@ -49,9 +41,7 @@ final class Qwen3TranscriptionService: Transcription {
             throw TranscriptionError.modelNotLoaded
         }
 
-        let text = model.transcribe(
-            audio: samples, sampleRate: 16000, language: "en", maxTokens: 150
-        )
+        let text = try model.transcribeAudio(samples, sampleRate: 16000)
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !trimmed.isEmpty else {

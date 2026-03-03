@@ -4,6 +4,7 @@ enum Constants {
     static let appName = "Whistype"
     static let defaultEngine = "whisperkit"
     static let defaultModel = "large-v3_turbo"
+    static let defaultQwen3Model = "parakeet-tdt"
     static let maxHistoryCount = 50
     static let capsuleWidth: CGFloat = 300
     static let capsuleHeight: CGFloat = 52
@@ -20,6 +21,7 @@ enum Constants {
         static let showCapsule = "showCapsule"
         static let launchAtLogin = "launchAtLogin"
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
+        static let selectedQwen3Model = "selectedQwen3Model"
         static let hasPromptedAccessibility = "hasPromptedAccessibility"
     }
 }

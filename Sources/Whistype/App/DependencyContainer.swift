@@ -11,8 +11,11 @@ final class DependencyContainer {
 
     private var _whisperService: WhisperTranscriptionService?
     private var _qwen3Service: Qwen3TranscriptionService?
+    private var _parakeetService: ParakeetTranscriptionService?
     private var engineCancellable: AnyCancellable?
+    private var qwen3ModelCancellable: AnyCancellable?
     private var activeEngine: String
+    private var activeQwen3Model: String
 
     var whisperService: WhisperTranscriptionService {
         if let existing = _whisperService { return existing }
@@ -25,6 +28,13 @@ final class DependencyContainer {
         if let existing = _qwen3Service { return existing }
         let service = Qwen3TranscriptionService()
         _qwen3Service = service
+        return service
+    }
+
+    var parakeetService: ParakeetTranscriptionService {
+        if let existing = _parakeetService { return existing }
+        let service = ParakeetTranscriptionService()
+        _parakeetService = service
         return service
     }
 
@@ -41,14 +51,22 @@ final class DependencyContainer {
 
         let engine = UserDefaults.standard.string(forKey: Constants.Keys.selectedEngine)
             ?? Constants.defaultEngine
+        let qwen3Model = UserDefaults.standard.string(forKey: Constants.Keys.selectedQwen3Model)
+            ?? Constants.defaultQwen3Model
         self.activeEngine = engine
+        self.activeQwen3Model = qwen3Model
 
-        // Only create the service for the selected engine
         let initialService: Transcription
         if engine == "qwen3-asr" {
-            let service = Qwen3TranscriptionService()
-            _qwen3Service = service
-            initialService = service
+            if qwen3Model == "parakeet-tdt" {
+                let service = ParakeetTranscriptionService()
+                _parakeetService = service
+                initialService = service
+            } else {
+                let service = Qwen3TranscriptionService()
+                _qwen3Service = service
+                initialService = service
+            }
         } else {
             let service = WhisperTranscriptionService()
             _whisperService = service
@@ -64,6 +82,14 @@ final class DependencyContainer {
         )
 
         observeEngineChanges()
+        observeQwen3ModelChanges()
+    }
+
+    private func resolveQwen3FamilyService() -> Transcription {
+        if activeQwen3Model == "parakeet-tdt" {
+            return parakeetService
+        }
+        return qwen3Service
     }
 
     private func observeEngineChanges() {
@@ -77,8 +103,27 @@ final class DependencyContainer {
                 guard engine != self.activeEngine else { return }
                 self.activeEngine = engine
                 let newService: Transcription = engine == "qwen3-asr"
-                    ? self.qwen3Service : self.whisperService
+                    ? self.resolveQwen3FamilyService() : self.whisperService
                 NSLog("[Whistype] Engine changed to: %@", engine)
+                Task {
+                    await self.coordinator.switchEngine(to: newService)
+                }
+            }
+    }
+
+    private func observeQwen3ModelChanges() {
+        qwen3ModelCancellable = UserDefaults.standard
+            .publisher(for: \.selectedQwen3Model)
+            .removeDuplicates()
+            .dropFirst()
+            .sink { [weak self] newModel in
+                guard let self else { return }
+                let model = newModel ?? Constants.defaultQwen3Model
+                guard model != self.activeQwen3Model else { return }
+                self.activeQwen3Model = model
+                guard self.activeEngine == "qwen3-asr" else { return }
+                let newService = self.resolveQwen3FamilyService()
+                NSLog("[Whistype] Qwen3 sub-model changed to: %@", model)
                 Task {
                     await self.coordinator.switchEngine(to: newService)
                 }
@@ -86,10 +131,14 @@ final class DependencyContainer {
     }
 }
 
-// MARK: - KVO-compatible key for selectedEngine
+// MARK: - KVO-compatible keys for UserDefaults
 
 extension UserDefaults {
     @objc var selectedEngine: String? {
         string(forKey: Constants.Keys.selectedEngine)
+    }
+
+    @objc var selectedQwen3Model: String? {
+        string(forKey: Constants.Keys.selectedQwen3Model)
     }
 }

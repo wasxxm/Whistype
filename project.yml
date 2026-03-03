@@ -46,5 +46,7 @@ targets:
       - package: HotKey
       - package: Qwen3ASR
         product: Qwen3ASR
+      - package: Qwen3ASR
+        product: ParakeetASR
     entitlements:
       path: Whistype.entitlements
