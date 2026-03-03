@@ -9,7 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private var capsuleWindowController: FloatingCapsuleWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSLog("[FreeWhisper] applicationDidFinishLaunching")
+        NSLog("[Whistype] applicationDidFinishLaunching")
         NSApp.setActivationPolicy(.accessory)
 
         let schema = Schema([TranscriptionRecord.self])
@@ -24,7 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         container.permissions.promptAccessibilityIfNeeded()
         capsuleWindowController = FloatingCapsuleWindowController(coordinator: container.coordinator)
 
-        NSLog("[FreeWhisper] Starting model load")
+        NSLog("[Whistype] Starting model load")
         Task {
             await container.coordinator.loadModel()
         }

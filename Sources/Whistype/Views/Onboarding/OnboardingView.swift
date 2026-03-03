@@ -65,7 +65,7 @@ struct OnboardingView: View {
                 .font(.system(size: 64))
                 .foregroundStyle(.blue)
 
-            Text("FreeWhisper")
+            Text("Whistype")
                 .font(.largeTitle)
                 .fontWeight(.bold)
 

@@ -1,10 +1,16 @@
 import SwiftUI
 
 struct GeneralSettingsTab: View {
+    @AppStorage("selectedEngine") private var selectedEngine = Constants.defaultEngine
     @AppStorage("selectedModel") private var selectedModel = Constants.defaultModel
     @AppStorage("autoPasteEnabled") private var autoPasteEnabled = true
     @AppStorage("showCapsule") private var showCapsule = true
     @AppStorage("launchAtLogin") private var launchAtLogin = false
+
+    private let availableEngines = [
+        ("whisperkit", "WhisperKit (CoreML)"),
+        ("qwen3-asr", "Qwen3-ASR (MLX)"),
+    ]
 
     private let availableModels = [
         "large-v3_turbo",
@@ -17,13 +23,34 @@ struct GeneralSettingsTab: View {
     var body: some View {
         Form {
             Section("Transcription") {
-                Picker("Model", selection: $selectedModel) {
-                    ForEach(availableModels, id: \.self) { model in
-                        Text(model).tag(model)
+                Picker("Engine", selection: $selectedEngine) {
+                    ForEach(availableEngines, id: \.0) { engine in
+                        Text(engine.1).tag(engine.0)
                     }
                 }
                 .pickerStyle(.menu)
-                .help("Larger models are more accurate but slower.")
+                .help("Restart app after changing engine.")
+
+                if selectedEngine == "whisperkit" {
+                    Picker("Model", selection: $selectedModel) {
+                        ForEach(availableModels, id: \.self) { model in
+                            Text(model).tag(model)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .help("Larger models are more accurate but slower.")
+                } else {
+                    HStack {
+                        Text("Model")
+                        Spacer()
+                        Text("Qwen3-ASR-0.6B (4-bit)")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Text("Restart app to apply engine changes.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section("Behavior") {

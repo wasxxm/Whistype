@@ -46,13 +46,13 @@ final class TranscriptionCoordinator: ObservableObject {
     func loadModel() async {
         let modelName = UserDefaults.standard.string(forKey: "selectedModel")
             ?? Constants.defaultModel
-        NSLog("[FreeWhisper] Loading model: %@", modelName)
+        NSLog("[Whistype] Loading model: %@", modelName)
         do {
             try await transcriptionService.loadModel(name: modelName)
             isModelLoaded = true
-            NSLog("[FreeWhisper] Model loaded, ready to transcribe")
+            NSLog("[Whistype] Model loaded, ready to transcribe")
         } catch {
-            NSLog("[FreeWhisper] Model load error: %@", error.localizedDescription)
+            NSLog("[Whistype] Model load error: %@", error.localizedDescription)
             state = .error(message: "Failed to load model: \(error.localizedDescription)")
             scheduleDismiss(after: Constants.errorDismissDelay)
         }
@@ -134,7 +134,7 @@ final class TranscriptionCoordinator: ObservableObject {
             pasteService.saveFrontmostApp()
             try audioRecorder.startRecording()
             state = .recording(startTime: .now)
-            NSLog("[FreeWhisper] Recording started")
+            NSLog("[Whistype] Recording started")
         } catch {
             state = .error(message: error.localizedDescription)
             scheduleDismiss(after: Constants.errorDismissDelay)
@@ -149,23 +149,23 @@ final class TranscriptionCoordinator: ObservableObject {
 
         // Skip transcription for very short recordings (accidental taps)
         guard duration >= 0.5 else {
-            NSLog("[FreeWhisper] Recording too short (%.1fs), discarding", duration)
+            NSLog("[Whistype] Recording too short (%.1fs), discarding", duration)
             state = .idle
             return
         }
 
         state = .transcribing
-        NSLog("[FreeWhisper] Recording stopped, transcribing %d samples (%.1fs)", samples.count, duration)
+        NSLog("[Whistype] Recording stopped, transcribing %d samples (%.1fs)", samples.count, duration)
 
         Task {
             do {
                 let text = try await transcriptionService.transcribe(samples: samples)
                 state = .done(text: text)
-                NSLog("[FreeWhisper] Transcription: %@", text)
+                NSLog("[Whistype] Transcription: %@", text)
                 handleTranscriptionResult(text: text, duration: duration)
                 scheduleDismiss(after: Constants.doneDismissDelay)
             } catch {
-                NSLog("[FreeWhisper] Transcription error: %@", error.localizedDescription)
+                NSLog("[Whistype] Transcription error: %@", error.localizedDescription)
                 state = .error(message: error.localizedDescription)
                 scheduleDismiss(after: Constants.errorDismissDelay)
             }

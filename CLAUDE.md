@@ -1,7 +1,7 @@
-# FreeWhisper — Project Instructions
+# Whistype — Project Instructions
 
 ## Overview
-FreeWhisper is a native macOS menu bar speech-to-text app. It uses WhisperKit (CoreML) for on-device transcription on Apple Silicon. The app has a unique floating capsule UI that appears at the bottom-center of the screen during recording. Option+Space is the global hotkey.
+Whistype is a native macOS menu bar speech-to-text app. It uses WhisperKit (CoreML) for on-device transcription on Apple Silicon. The app has a unique floating capsule UI that appears at the bottom-center of the screen during recording. Option+Space is the global hotkey.
 
 ## Tech Stack
 - Swift 5.9+ / SwiftUI / AppKit hybrid
@@ -26,11 +26,11 @@ FreeWhisper is a native macOS menu bar speech-to-text app. It uses WhisperKit (C
 - No sandbox entitlement (required for CGEvent paste)
 
 ## Key Directories
-- Sources/FreeWhisper/App/ — entry point, app delegate, DI container
-- Sources/FreeWhisper/Domain/ — state enum, service protocols
-- Sources/FreeWhisper/Services/ — concrete service implementations
-- Sources/FreeWhisper/Coordination/ — TranscriptionCoordinator
-- Sources/FreeWhisper/Views/ — all SwiftUI views organized by feature
+- Sources/Whistype/App/ — entry point, app delegate, DI container
+- Sources/Whistype/Domain/ — state enum, service protocols
+- Sources/Whistype/Services/ — concrete service implementations
+- Sources/Whistype/Coordination/ — TranscriptionCoordinator
+- Sources/Whistype/Views/ — all SwiftUI views organized by feature
 
 ## Conventions
 - Use protocols for all services (testability)

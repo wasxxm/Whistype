@@ -13,7 +13,7 @@ final class WhisperTranscriptionService: Transcription {
     private var whisperKit: WhisperKit?
 
     func loadModel(name: String) async throws {
-        NSLog("[FreeWhisper] loadModel started for: %@", name)
+        NSLog("[Whistype] loadModel started for: %@", name)
         loadingStatusSubject.send(.downloading(progress: 0))
 
         // Let WhisperKit handle download + prewarm + load in one pass.
@@ -29,13 +29,13 @@ final class WhisperTranscriptionService: Transcription {
         )
 
         loadingStatusSubject.send(.loading)
-        NSLog("[FreeWhisper] Creating WhisperKit (download + prewarm + load)")
+        NSLog("[Whistype] Creating WhisperKit (download + prewarm + load)")
         let kit = try await WhisperKit(config)
 
         whisperKit = kit
         isModelLoaded = true
         loadingStatusSubject.send(.ready)
-        NSLog("[FreeWhisper] Model ready")
+        NSLog("[Whistype] Model ready")
     }
 
     func transcribe(samples: [Float]) async throws -> String {

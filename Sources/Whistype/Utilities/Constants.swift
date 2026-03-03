@@ -1,7 +1,8 @@
 import Foundation
 
 enum Constants {
-    static let appName = "FreeWhisper"
+    static let appName = "Whistype"
+    static let defaultEngine = "whisperkit"
     static let defaultModel = "large-v3_turbo"
     static let maxHistoryCount = 50
     static let capsuleWidth: CGFloat = 280
