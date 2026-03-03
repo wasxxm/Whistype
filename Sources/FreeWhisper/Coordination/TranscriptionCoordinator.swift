@@ -140,7 +140,7 @@ final class TranscriptionCoordinator: ObservableObject {
         let samples = audioRecorder.stopRecording()
         let duration = Date.now.timeIntervalSince(startTime)
         state = .transcribing
-        NSLog("[FreeWhisper] Recording stopped, transcribing %d samples", samples.count)
+        NSLog("[FreeWhisper] Recording stopped, transcribing %d samples (%.1fs)", samples.count, duration)
 
         Task {
             do {
