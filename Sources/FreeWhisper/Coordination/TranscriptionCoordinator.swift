@@ -75,7 +75,13 @@ final class TranscriptionCoordinator: ObservableObject {
     }
 
     private func handleKeyDown() {
-        guard isModelLoaded else { return }
+        guard isModelLoaded else {
+            if case .idle = state {
+                state = .error(message: loadingStatus.displayText)
+                scheduleDismiss(after: 1.5)
+            }
+            return
+        }
         guard case .idle = state else { return }
         startRecording()
     }
@@ -125,6 +131,7 @@ final class TranscriptionCoordinator: ObservableObject {
 
     private func beginRecording() {
         do {
+            pasteService.saveFrontmostApp()
             try audioRecorder.startRecording()
             state = .recording(startTime: .now)
             NSLog("[FreeWhisper] Recording started")
@@ -139,6 +146,14 @@ final class TranscriptionCoordinator: ObservableObject {
 
         let samples = audioRecorder.stopRecording()
         let duration = Date.now.timeIntervalSince(startTime)
+
+        // Skip transcription for very short recordings (accidental taps)
+        guard duration >= 0.5 else {
+            NSLog("[FreeWhisper] Recording too short (%.1fs), discarding", duration)
+            state = .idle
+            return
+        }
+
         state = .transcribing
         NSLog("[FreeWhisper] Recording stopped, transcribing %d samples (%.1fs)", samples.count, duration)
 
