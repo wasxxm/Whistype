@@ -160,7 +160,7 @@ final class TranscriptionCoordinator: ObservableObject {
     // MARK: - Result handling
 
     private func handleTranscriptionResult(text: String, duration: Double) {
-        if autoPasteEnabled && permissions.accessibilityGranted {
+        if autoPasteEnabled {
             pasteService.paste(text: text)
         } else {
             pasteService.copyToClipboard(text: text)
