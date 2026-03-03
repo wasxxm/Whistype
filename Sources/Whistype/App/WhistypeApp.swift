@@ -29,10 +29,8 @@ struct WhistypeApp: App {
         .defaultSize(width: 480, height: 560)
 
         Window("Transcription History", id: "history") {
-            if let modelContainer = appDelegate.modelContainer {
-                HistoryView()
-                    .modelContainer(modelContainer)
-            }
+            HistoryView()
+                .modelContainer(appDelegate.modelContainer)
         }
         .defaultSize(width: 480, height: 600)
     }

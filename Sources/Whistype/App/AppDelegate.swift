@@ -5,13 +5,10 @@ import SwiftUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     let container = DependencyContainer()
-    private(set) var modelContainer: ModelContainer!
+    let modelContainer: ModelContainer
     private var capsuleWindowController: FloatingCapsuleWindowController?
 
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        NSLog("[Whistype] applicationDidFinishLaunching")
-        NSApp.setActivationPolicy(.accessory)
-
+    override init() {
         let schema = Schema([TranscriptionRecord.self])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {
@@ -19,6 +16,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
+        super.init()
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        NSLog("[Whistype] applicationDidFinishLaunching")
+        NSApp.setActivationPolicy(.accessory)
 
         container.coordinator.setupModelContainer(modelContainer)
         container.permissions.promptAccessibilityIfNeeded()
