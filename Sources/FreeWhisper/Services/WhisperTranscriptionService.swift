@@ -13,40 +13,29 @@ final class WhisperTranscriptionService: Transcription {
     private var whisperKit: WhisperKit?
 
     func loadModel(name: String) async throws {
-        NSLog("loadModel started for: \(name)")
+        NSLog("[FreeWhisper] loadModel started for: %@", name)
         loadingStatusSubject.send(.downloading(progress: 0))
 
+        // Let WhisperKit handle download + prewarm + load in one pass.
+        // On first launch CoreML compiles the model for ANE (~18s).
+        // Subsequent launches use the cached compilation and are fast.
         let config = WhisperKitConfig(
             model: name,
-            verbose: true,
-            logLevel: .info,
-            prewarm: false,
-            load: false,
-            download: false
+            verbose: false,
+            logLevel: .error,
+            prewarm: true,
+            load: true,
+            download: true
         )
-        NSLog("Creating WhisperKit instance")
-        let kit = try await WhisperKit(config)
 
-        NSLog("Downloading/locating model")
-        let modelFolder = try await WhisperKit.download(variant: name) { [weak self] progress in
-            let fraction = progress.fractionCompleted
-            self?.loadingStatusSubject.send(.downloading(progress: fraction))
-        }
-        kit.modelFolder = modelFolder
-        NSLog("Model folder: \(modelFolder)")
-
-        NSLog("Prewarming models")
-        loadingStatusSubject.send(.prewarming)
-        try await kit.prewarmModels()
-
-        NSLog("Loading models")
         loadingStatusSubject.send(.loading)
-        try await kit.loadModels()
+        NSLog("[FreeWhisper] Creating WhisperKit (download + prewarm + load)")
+        let kit = try await WhisperKit(config)
 
         whisperKit = kit
         isModelLoaded = true
         loadingStatusSubject.send(.ready)
-        NSLog("Model loaded successfully")
+        NSLog("[FreeWhisper] Model ready")
     }
 
     func transcribe(samples: [Float]) async throws -> String {
@@ -54,7 +43,23 @@ final class WhisperTranscriptionService: Transcription {
             throw TranscriptionError.modelNotLoaded
         }
 
-        let result = try await whisperKit.transcribe(audioArray: samples)
+        let options = DecodingOptions(
+            task: .transcribe,
+            language: "en",
+            temperature: 0,
+            temperatureFallbackCount: 0,
+            usePrefillPrompt: true,
+            usePrefillCache: true,
+            skipSpecialTokens: true,
+            withoutTimestamps: true,
+            suppressBlank: true,
+            concurrentWorkerCount: 16
+        )
+
+        let result = try await whisperKit.transcribe(
+            audioArray: samples,
+            decodeOptions: options
+        )
         let text = result.map(\.text).joined(separator: " ").trimmingCharacters(
             in: .whitespacesAndNewlines)
 
