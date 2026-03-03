@@ -197,11 +197,20 @@ final class TranscriptionCoordinator: ObservableObject {
     }
 
     private func saveToHistory(text: String, duration: Double) {
-        guard let modelContainer else { return }
+        guard let modelContainer else {
+            NSLog("[Whistype] saveToHistory: no modelContainer, skipping")
+            return
+        }
         let record = TranscriptionRecord(text: text, durationSeconds: duration)
         let context = modelContainer.mainContext
         context.insert(record)
         trimHistory(context: context)
+        do {
+            try context.save()
+            NSLog("[Whistype] Saved transcription to history")
+        } catch {
+            NSLog("[Whistype] Failed to save history: %@", error.localizedDescription)
+        }
     }
 
     private func trimHistory(context: ModelContext) {
