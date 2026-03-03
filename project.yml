@@ -33,6 +33,8 @@ targets:
         MACOSX_DEPLOYMENT_TARGET: "14.0"
         ENABLE_HARDENED_RUNTIME: true
         CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 3426FSU868
+        CODE_SIGN_IDENTITY: "Apple Development"
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     dependencies:
