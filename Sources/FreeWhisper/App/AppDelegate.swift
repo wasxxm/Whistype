@@ -21,7 +21,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
 
         container.coordinator.setupModelContainer(modelContainer)
-        container.permissions.promptAccessibilityIfNeeded()
         capsuleWindowController = FloatingCapsuleWindowController(coordinator: container.coordinator)
 
         NSLog("[FreeWhisper] Starting model load")
