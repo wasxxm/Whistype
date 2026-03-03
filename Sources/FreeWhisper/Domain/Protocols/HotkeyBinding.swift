@@ -1,7 +1,8 @@
 import Foundation
 
 protocol HotkeyBinding: AnyObject {
-    var onToggle: (() -> Void)? { get set }
+    var onKeyDown: (() -> Void)? { get set }
+    var onKeyUp: (() -> Void)? { get set }
     func register()
     func unregister()
 }
