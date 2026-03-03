@@ -7,9 +7,12 @@ struct FreeWhisperApp: App {
     @StateObject private var container = DependencyContainer()
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
+    private let modelContainer: ModelContainer
+
     var body: some Scene {
         MenuBarExtra {
             MenuBarView(coordinator: container.coordinator)
+                .task { await bootstrapIfNeeded() }
         } label: {
             MenuBarLabel(state: container.coordinator.state)
         }
@@ -30,6 +33,7 @@ struct FreeWhisperApp: App {
 
         Window("Transcription History", id: "history") {
             HistoryView()
+                .modelContainer(modelContainer)
         }
         .defaultSize(width: 480, height: 600)
     }
@@ -41,6 +45,24 @@ struct FreeWhisperApp: App {
             "maxRecordingSeconds": Constants.defaultMaxRecordingSeconds,
             "selectedModel": Constants.defaultModel,
         ])
+
+        let schema = Schema([TranscriptionRecord.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        do {
+            modelContainer = try ModelContainer(for: schema, configurations: [config])
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
+    }
+
+    @MainActor
+    private func bootstrapIfNeeded() async {
+        guard appDelegate.coordinator == nil else { return }
+
+        appDelegate.coordinator = container.coordinator
+        appDelegate.modelContainer = modelContainer
+        appDelegate.setupCapsule()
+        appDelegate.setupAndLoadModel()
     }
 }
 
