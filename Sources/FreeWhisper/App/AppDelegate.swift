@@ -1,34 +1,27 @@
 import AppKit
+import SwiftData
 import SwiftUI
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var capsuleWindowController: FloatingCapsuleWindowController?
+    var coordinator: TranscriptionCoordinator?
+    var modelContainer: ModelContainer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
-
-        if !UserDefaults.standard.bool(forKey: "hasSetDefaults") {
-            setDefaultPreferences()
-        }
     }
 
-    func setupCapsuleWindow(coordinator: TranscriptionCoordinator) {
+    func setupCapsule() {
+        guard let coordinator else { return }
         capsuleWindowController = FloatingCapsuleWindowController(coordinator: coordinator)
     }
 
-    func showCapsule() {
-        capsuleWindowController?.show()
-    }
-
-    func hideCapsule() {
-        capsuleWindowController?.hide()
-    }
-
-    private func setDefaultPreferences() {
-        UserDefaults.standard.set(true, forKey: "autoPasteEnabled")
-        UserDefaults.standard.set(true, forKey: "showCapsule")
-        UserDefaults.standard.set(Constants.defaultMaxRecordingSeconds, forKey: "maxRecordingSeconds")
-        UserDefaults.standard.set(Constants.defaultModel, forKey: "selectedModel")
-        UserDefaults.standard.set(true, forKey: "hasSetDefaults")
+    func setupAndLoadModel() {
+        guard let coordinator, let modelContainer else { return }
+        coordinator.setupModelContainer(modelContainer)
+        Task {
+            await coordinator.loadModel()
+        }
     }
 }
