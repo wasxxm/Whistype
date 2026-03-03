@@ -22,7 +22,7 @@ struct GeneralSettingsTab: View {
 
     var body: some View {
         Form {
-            Section("Transcription") {
+            Section {
                 Picker("Engine", selection: $selectedEngine) {
                     ForEach(availableEngines, id: \.0) { engine in
                         Text(engine.1).tag(engine.0)
@@ -37,43 +37,53 @@ struct GeneralSettingsTab: View {
                         }
                     }
                     .pickerStyle(.menu)
-                    .help("Larger models are more accurate but slower.")
                 } else {
-                    HStack {
-                        Text("Model")
-                        Spacer()
+                    LabeledContent("Model") {
                         Text("Qwen3-ASR-0.6B (4-bit)")
                             .foregroundStyle(.secondary)
                     }
                 }
-
+            } header: {
+                Label("Transcription", systemImage: "waveform")
             }
 
-            Section("Behavior") {
+            Section {
                 Toggle("Auto-paste transcription", isOn: $autoPasteEnabled)
-                    .help("Automatically paste text into the active app after transcription.")
-
                 Toggle("Show floating capsule", isOn: $showCapsule)
-                    .help("Show the recording indicator at the bottom of the screen.")
+            } header: {
+                Label("Behavior", systemImage: "hand.tap")
             }
 
-            Section("System") {
+            Section {
                 Toggle("Launch at login", isOn: $launchAtLogin)
-                    .help("Start Whistype when you log in to your Mac.")
 
-                HStack {
-                    Text("Hotkey")
-                    Spacer()
-                    Text("⌥ Space")
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(Color.secondary.opacity(0.15))
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                        .font(.system(.body, design: .monospaced))
+                LabeledContent("Hotkey") {
+                    HStack(spacing: 3) {
+                        SettingsKeyCap(text: "⌥")
+                        SettingsKeyCap(text: "Space")
+                    }
                 }
+            } header: {
+                Label("System", systemImage: "gearshape.2")
             }
         }
         .formStyle(.grouped)
-        .padding()
+    }
+}
+
+private struct SettingsKeyCap: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.system(.caption, design: .rounded, weight: .medium))
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .background(.quaternary)
+            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .strokeBorder(.separator, lineWidth: 0.5)
+            )
     }
 }
