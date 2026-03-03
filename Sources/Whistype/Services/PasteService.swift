@@ -6,6 +6,16 @@ final class PasteService: OutputPasting {
     /// The app that was frontmost when recording started.
     private var savedFrontmostApp: NSRunningApplication?
 
+    private lazy var cachedPasteScript: NSAppleScript? = {
+        let script = NSAppleScript(source: """
+            tell application "System Events"
+                keystroke "v" using command down
+            end tell
+        """)
+        script?.compileAndReturnError(nil)
+        return script
+    }()
+
     func saveFrontmostApp() {
         savedFrontmostApp = NSWorkspace.shared.frontmostApplication
         NSLog(
@@ -15,12 +25,6 @@ final class PasteService: OutputPasting {
     }
 
     func paste(text: String) {
-        // Re-activate the app that was in focus before recording
-        if let app = savedFrontmostApp {
-            NSLog("[Whistype] Re-activating: %@", app.localizedName ?? "unknown")
-            app.activate()
-        }
-
         if !AXIsProcessTrusted() {
             NSLog("[Whistype] AX not trusted — prompting and copying to clipboard")
             copyToClipboard(text: text)
@@ -28,6 +32,12 @@ final class PasteService: OutputPasting {
             AXIsProcessTrustedWithOptions(options)
             savedFrontmostApp = nil
             return
+        }
+
+        // Re-activate the app that was in focus before recording
+        if let app = savedFrontmostApp {
+            NSLog("[Whistype] Re-activating: %@", app.localizedName ?? "unknown")
+            app.activate()
         }
 
         // Strategy 1: Accessibility API — insert text directly at cursor
@@ -69,6 +79,7 @@ final class PasteService: OutputPasting {
             return false
         }
 
+        // CFTypeRef is toll-free bridged to AXUIElement
         let element = focused as! AXUIElement
 
         var roleRef: CFTypeRef?
@@ -136,20 +147,14 @@ final class PasteService: OutputPasting {
         keyUp.flags = .maskCommand
 
         keyDown.post(tap: .cghidEventTap)
-        usleep(50_000)  // 50ms between key down and up
         keyUp.post(tap: .cghidEventTap)
 
         NSLog("[Whistype] CGEvent Cmd+V posted via cghidEventTap")
     }
 
     private func simulateAppleScriptPaste() {
-        let script = NSAppleScript(source: """
-            tell application "System Events"
-                keystroke "v" using command down
-            end tell
-        """)
         var error: NSDictionary?
-        script?.executeAndReturnError(&error)
+        cachedPasteScript?.executeAndReturnError(&error)
         if let error {
             NSLog("[Whistype] AppleScript paste error: %@", error)
         } else {

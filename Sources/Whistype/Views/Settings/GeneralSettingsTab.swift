@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct GeneralSettingsTab: View {
-    @AppStorage("selectedEngine") private var selectedEngine = Constants.defaultEngine
-    @AppStorage("selectedModel") private var selectedModel = Constants.defaultModel
-    @AppStorage("autoPasteEnabled") private var autoPasteEnabled = true
-    @AppStorage("showCapsule") private var showCapsule = true
-    @AppStorage("launchAtLogin") private var launchAtLogin = false
+    @AppStorage(Constants.Keys.selectedEngine) private var selectedEngine = Constants.defaultEngine
+    @AppStorage(Constants.Keys.selectedModel) private var selectedModel = Constants.defaultModel
+    @AppStorage(Constants.Keys.autoPasteEnabled) private var autoPasteEnabled = true
+    @AppStorage(Constants.Keys.showCapsule) private var showCapsule = true
+    @AppStorage(Constants.Keys.launchAtLogin) private var launchAtLogin = false
 
     private let availableEngines = [
         ("whisperkit", "WhisperKit (CoreML)"),
@@ -59,8 +59,8 @@ struct GeneralSettingsTab: View {
 
                 LabeledContent("Hotkey") {
                     HStack(spacing: 3) {
-                        SettingsKeyCap(text: "⌥")
-                        SettingsKeyCap(text: "Space")
+                        KeyCapView(text: "⌥", size: .small)
+                        KeyCapView(text: "Space", size: .small)
                     }
                 }
             } header: {
@@ -68,22 +68,5 @@ struct GeneralSettingsTab: View {
             }
         }
         .formStyle(.grouped)
-    }
-}
-
-private struct SettingsKeyCap: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .font(.system(.caption, design: .rounded, weight: .medium))
-            .padding(.horizontal, 7)
-            .padding(.vertical, 3)
-            .background(.quaternary)
-            .clipShape(RoundedRectangle(cornerRadius: 4))
-            .overlay(
-                RoundedRectangle(cornerRadius: 4)
-                    .strokeBorder(.separator, lineWidth: 0.5)
-            )
     }
 }

@@ -9,13 +9,13 @@ options:
 packages:
   WhisperKit:
     url: https://github.com/argmaxinc/WhisperKit.git
-    from: "0.9.0"
+    from: "0.16.0"
   HotKey:
     url: https://github.com/soffes/HotKey
     from: "0.2.1"
   Qwen3ASR:
     url: https://github.com/ivan-digital/qwen3-asr-swift
-    branch: main
+    revision: bdc8a50b318969269be6b17fbab95b01d790a928
 
 targets:
   Whistype:

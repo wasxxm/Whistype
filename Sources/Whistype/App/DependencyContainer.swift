@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 @MainActor
@@ -8,10 +9,24 @@ final class DependencyContainer {
     let permissions: PermissionsChecking
     let coordinator: TranscriptionCoordinator
 
-    private let whisperService = WhisperTranscriptionService()
-    private let qwen3Service = Qwen3TranscriptionService()
-    private var engineObserver: NSObjectProtocol?
-    private var activeEngine: String = UserDefaults.standard.string(forKey: "selectedEngine") ?? Constants.defaultEngine
+    private var _whisperService: WhisperTranscriptionService?
+    private var _qwen3Service: Qwen3TranscriptionService?
+    private var engineCancellable: AnyCancellable?
+    private var activeEngine: String
+
+    var whisperService: WhisperTranscriptionService {
+        if let existing = _whisperService { return existing }
+        let service = WhisperTranscriptionService()
+        _whisperService = service
+        return service
+    }
+
+    var qwen3Service: Qwen3TranscriptionService {
+        if let existing = _qwen3Service { return existing }
+        let service = Qwen3TranscriptionService()
+        _qwen3Service = service
+        return service
+    }
 
     init() {
         let recorder = AudioRecorderService()
@@ -24,8 +39,21 @@ final class DependencyContainer {
         self.pasteService = paste
         self.permissions = perms
 
-        let engine = UserDefaults.standard.string(forKey: "selectedEngine") ?? Constants.defaultEngine
-        let initialService: Transcription = engine == "qwen3-asr" ? qwen3Service : whisperService
+        let engine = UserDefaults.standard.string(forKey: Constants.Keys.selectedEngine)
+            ?? Constants.defaultEngine
+        self.activeEngine = engine
+
+        // Only create the service for the selected engine
+        let initialService: Transcription
+        if engine == "qwen3-asr" {
+            let service = Qwen3TranscriptionService()
+            _qwen3Service = service
+            initialService = service
+        } else {
+            let service = WhisperTranscriptionService()
+            _whisperService = service
+            initialService = service
+        }
 
         self.coordinator = TranscriptionCoordinator(
             audioRecorder: recorder,
@@ -39,23 +67,29 @@ final class DependencyContainer {
     }
 
     private func observeEngineChanges() {
-        engineObserver = NotificationCenter.default.addObserver(
-            forName: UserDefaults.didChangeNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.handleEngineChange()
-        }
+        engineCancellable = UserDefaults.standard
+            .publisher(for: \.selectedEngine)
+            .removeDuplicates()
+            .dropFirst()
+            .sink { [weak self] newEngine in
+                guard let self else { return }
+                let engine = newEngine ?? Constants.defaultEngine
+                guard engine != self.activeEngine else { return }
+                self.activeEngine = engine
+                let newService: Transcription = engine == "qwen3-asr"
+                    ? self.qwen3Service : self.whisperService
+                NSLog("[Whistype] Engine changed to: %@", engine)
+                Task {
+                    await self.coordinator.switchEngine(to: newService)
+                }
+            }
     }
+}
 
-    private func handleEngineChange() {
-        let engine = UserDefaults.standard.string(forKey: "selectedEngine") ?? Constants.defaultEngine
-        guard engine != activeEngine else { return }
-        activeEngine = engine
-        let newService: Transcription = engine == "qwen3-asr" ? qwen3Service : whisperService
-        NSLog("[Whistype] Engine changed to: %@", engine)
-        Task {
-            await coordinator.switchEngine(to: newService)
-        }
+// MARK: - KVO-compatible key for selectedEngine
+
+extension UserDefaults {
+    @objc var selectedEngine: String? {
+        string(forKey: Constants.Keys.selectedEngine)
     }
 }

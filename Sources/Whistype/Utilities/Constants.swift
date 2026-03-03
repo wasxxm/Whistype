@@ -12,4 +12,14 @@ enum Constants {
     static let doneDismissDelay: TimeInterval = 1.5
     static let errorDismissDelay: TimeInterval = 2.0
     static let audioSampleRate: Double = 16000
+
+    enum Keys {
+        static let selectedEngine = "selectedEngine"
+        static let selectedModel = "selectedModel"
+        static let autoPasteEnabled = "autoPasteEnabled"
+        static let showCapsule = "showCapsule"
+        static let launchAtLogin = "launchAtLogin"
+        static let hasCompletedOnboarding = "hasCompletedOnboarding"
+        static let hasPromptedAccessibility = "hasPromptedAccessibility"
+    }
 }

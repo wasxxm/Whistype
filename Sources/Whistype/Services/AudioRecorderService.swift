@@ -1,3 +1,4 @@
+import Accelerate
 import AVFoundation
 import Combine
 import Foundation
@@ -9,6 +10,7 @@ final class AudioRecorderService: AudioRecording {
 
     private let audioLevelSubject = PassthroughSubject<Float, Never>()
     private let engine = AVAudioEngine()
+    private let samplesLock = NSLock()
     private var samples: [Float] = []
     private var isRecording = false
     private let targetSampleRate = Constants.audioSampleRate
@@ -25,7 +27,11 @@ final class AudioRecorderService: AudioRecording {
     func startRecording() throws {
         guard !isRecording else { return }
 
+        samplesLock.lock()
         samples = []
+        samples.reserveCapacity(Int(targetSampleRate) * 60)
+        samplesLock.unlock()
+
         let inputNode = engine.inputNode
         let nativeFormat = inputNode.inputFormat(forBus: 0)
 
@@ -55,8 +61,11 @@ final class AudioRecorderService: AudioRecording {
         engine.stop()
         isRecording = false
 
+        samplesLock.lock()
         let captured = samples
         samples = []
+        samplesLock.unlock()
+
         return captured
     }
 
@@ -84,21 +93,16 @@ final class AudioRecorderService: AudioRecording {
             let channelData = outputBuffer.floatChannelData?[0]
         else { return }
 
-        let frames = Array(
-            UnsafeBufferPointer(
-                start: channelData,
-                count: Int(outputBuffer.frameLength)
-            ))
+        let count = Int(outputBuffer.frameLength)
+        let bufferPointer = UnsafeBufferPointer(start: channelData, count: count)
 
-        let rms = computeRMS(frames)
+        var rms: Float = 0
+        vDSP_rmsqv(channelData, 1, &rms, vDSP_Length(count))
         audioLevelSubject.send(rms)
-        samples.append(contentsOf: frames)
-    }
 
-    private func computeRMS(_ buffer: [Float]) -> Float {
-        guard !buffer.isEmpty else { return 0 }
-        let sumOfSquares = buffer.reduce(Float(0)) { $0 + $1 * $1 }
-        return sqrt(sumOfSquares / Float(buffer.count))
+        samplesLock.lock()
+        samples.append(contentsOf: bufferPointer)
+        samplesLock.unlock()
     }
 }
 

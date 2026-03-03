@@ -4,14 +4,13 @@ import SwiftUI
 @main
 struct WhistypeApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage(Constants.Keys.hasCompletedOnboarding) private var hasCompletedOnboarding = false
 
     var body: some Scene {
         MenuBarExtra {
             MenuBarView(coordinator: appDelegate.container.coordinator)
         } label: {
-            Image(systemName: "waveform.circle")
-                .symbolRenderingMode(.hierarchical)
+            MenuBarIcon(coordinator: appDelegate.container.coordinator)
         }
 
         Settings {
@@ -20,7 +19,7 @@ struct WhistypeApp: App {
 
         Window("Welcome to Whistype", id: "onboarding") {
             OnboardingView(
-                permissions: appDelegate.container.permissions as! PermissionsManager,
+                permissions: appDelegate.container.permissions,
                 coordinator: appDelegate.container.coordinator,
                 onComplete: { hasCompletedOnboarding = true }
             )
@@ -37,9 +36,13 @@ struct WhistypeApp: App {
 
     init() {
         UserDefaults.standard.register(defaults: [
-            "autoPasteEnabled": true,
-            "showCapsule": true,
-            "selectedModel": Constants.defaultModel,
+            Constants.Keys.selectedEngine: Constants.defaultEngine,
+            Constants.Keys.selectedModel: Constants.defaultModel,
+            Constants.Keys.autoPasteEnabled: true,
+            Constants.Keys.showCapsule: true,
+            Constants.Keys.launchAtLogin: false,
+            Constants.Keys.hasCompletedOnboarding: false,
+            Constants.Keys.hasPromptedAccessibility: false,
         ])
     }
 }
