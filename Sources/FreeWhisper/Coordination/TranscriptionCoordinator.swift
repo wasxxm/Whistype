@@ -88,12 +88,22 @@ final class TranscriptionCoordinator: ObservableObject {
     }
 
     private func startRecording() {
-        guard permissions.microphoneGranted else {
-            state = .error(message: "Microphone access required.")
-            scheduleDismiss(after: Constants.errorDismissDelay)
-            return
+        if permissions.microphoneGranted {
+            beginRecording()
+        } else {
+            Task {
+                let granted = await permissions.requestMicrophone()
+                if granted {
+                    beginRecording()
+                } else {
+                    state = .error(message: "Microphone access required. Grant it in System Settings.")
+                    scheduleDismiss(after: Constants.errorDismissDelay)
+                }
+            }
         }
+    }
 
+    private func beginRecording() {
         do {
             try audioRecorder.startRecording()
             state = .recording(startTime: .now)

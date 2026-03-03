@@ -6,8 +6,28 @@ final class WhisperTranscriptionService: Transcription {
     private var whisperKit: WhisperKit?
 
     func loadModel(name: String) async throws {
-        let config = WhisperKitConfig(model: name)
-        whisperKit = try await WhisperKit(config)
+        // Step 1: Initialize WhisperKit without loading or downloading yet
+        let config = WhisperKitConfig(
+            model: name,
+            verbose: true,
+            logLevel: .info,
+            prewarm: false,
+            load: false,
+            download: false
+        )
+        let kit = try await WhisperKit(config)
+
+        // Step 2: Download model (or use local cache if already downloaded)
+        let modelFolder = try await WhisperKit.download(variant: name)
+        kit.modelFolder = modelFolder
+
+        // Step 3: Prewarm models (compiles CoreML for this device)
+        try await kit.prewarmModels()
+
+        // Step 4: Load models into memory
+        try await kit.loadModels()
+
+        whisperKit = kit
         isModelLoaded = true
     }
 
