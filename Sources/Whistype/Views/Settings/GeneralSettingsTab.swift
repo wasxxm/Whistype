@@ -3,13 +3,19 @@ import SwiftUI
 struct GeneralSettingsTab: View {
     @AppStorage(Constants.Keys.selectedEngine) private var selectedEngine = Constants.defaultEngine
     @AppStorage(Constants.Keys.selectedModel) private var selectedModel = Constants.defaultModel
+    @AppStorage(Constants.Keys.selectedQwen3Model) private var selectedQwen3Model = Constants.defaultQwen3Model
     @AppStorage(Constants.Keys.autoPasteEnabled) private var autoPasteEnabled = true
     @AppStorage(Constants.Keys.showCapsule) private var showCapsule = true
     @AppStorage(Constants.Keys.launchAtLogin) private var launchAtLogin = false
 
     private let availableEngines = [
         ("whisperkit", "WhisperKit (CoreML)"),
-        ("qwen3-asr", "Qwen3-ASR (MLX)"),
+        ("qwen3-asr", "Qwen3-ASR"),
+    ]
+
+    private let availableQwen3Models = [
+        ("parakeet-tdt", "Parakeet TDT 0.6B (CoreML)"),
+        ("qwen3-asr", "Qwen3-ASR 0.6B (MLX)"),
     ]
 
     private let availableModels = [
@@ -38,10 +44,12 @@ struct GeneralSettingsTab: View {
                     }
                     .pickerStyle(.menu)
                 } else {
-                    LabeledContent("Model") {
-                        Text("Qwen3-ASR-0.6B (4-bit)")
-                            .foregroundStyle(.secondary)
+                    Picker("Model", selection: $selectedQwen3Model) {
+                        ForEach(availableQwen3Models, id: \.0) { model in
+                            Text(model.1).tag(model.0)
+                        }
                     }
+                    .pickerStyle(.menu)
                 }
             } header: {
                 Label("Transcription", systemImage: "waveform")

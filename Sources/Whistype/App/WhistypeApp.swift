@@ -38,6 +38,7 @@ struct WhistypeApp: App {
         UserDefaults.standard.register(defaults: [
             Constants.Keys.selectedEngine: Constants.defaultEngine,
             Constants.Keys.selectedModel: Constants.defaultModel,
+            Constants.Keys.selectedQwen3Model: Constants.defaultQwen3Model,
             Constants.Keys.autoPasteEnabled: true,
             Constants.Keys.showCapsule: true,
             Constants.Keys.launchAtLogin: false,
