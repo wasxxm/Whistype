@@ -1,15 +1,16 @@
-# FreeWhisper
+# Whistype
 
-Free, fast, on-device speech-to-text for macOS. Built on [WhisperKit](https://github.com/argmaxinc/WhisperKit) with CoreML acceleration for Apple Silicon.
+Free, fast, on-device speech-to-text for macOS. Supports [WhisperKit](https://github.com/argmaxinc/WhisperKit) (CoreML) and [Qwen3-ASR](https://github.com/ivan-digital/qwen3-asr-swift) (MLX) engines on Apple Silicon.
 
-Press **⌥ Space** anywhere to start dictating. Press again to stop. Text is transcribed locally and pasted into the active app.
+Hold **⌥ Space** anywhere to dictate. Release to stop. Text is transcribed locally and pasted into the active app.
 
 ## Features
 
 - **Zero cost** — no subscription, no API keys, no cloud
 - **On-device** — audio never leaves your Mac
-- **Fast** — CoreML + Apple Neural Engine acceleration on M-series chips
-- **Global hotkey** — ⌥ Space from any app
+- **Dual engine** — WhisperKit (CoreML) or Qwen3-ASR (MLX), switchable in settings
+- **Fast** — CoreML + Apple Neural Engine or MLX acceleration on M-series chips
+- **Global hotkey** — hold ⌥ Space from any app
 - **Floating capsule** — minimal recording indicator at bottom of screen
 - **Auto-paste** — transcribed text goes straight into the active app
 - **History** — searchable log of past transcriptions
@@ -26,24 +27,24 @@ Press **⌥ Space** anywhere to start dictating. Press again to stop. Text is tr
 ### Build from source
 
 ```bash
-git clone https://github.com/InnoWazi/FreeWhisper.git
-cd FreeWhisper
+git clone https://github.com/InnoWazi/Whistype.git
+cd Whistype
 xcodegen generate
-open FreeWhisper.xcodeproj
+open Whistype.xcodeproj
 ```
 
-Select the FreeWhisper scheme and press ⌘R to build and run.
+Select the Whistype scheme and press ⌘R to build and run.
 
 ### First launch
 
 1. Grant microphone access when prompted
 2. Grant Accessibility access in System Settings (for auto-paste)
-3. The Whisper model downloads automatically on first use (~1.5 GB)
-4. Press ⌥ Space to start dictating
+3. The model downloads automatically on first use (~1.5 GB for WhisperKit, ~400 MB for Qwen3-ASR)
+4. Hold ⌥ Space to dictate, release to stop
 
 ## How it works
 
-FreeWhisper sits in your menu bar. When you press ⌥ Space, a floating capsule appears at the bottom of your screen showing recording state. Press ⌥ Space again to stop. The audio is transcribed using WhisperKit (large-v3-turbo model by default) and the text is pasted into whatever app you were using.
+Whistype sits in your menu bar. Hold ⌥ Space and a floating capsule appears at the bottom of your screen showing recording state. Release to stop. The audio is transcribed using the selected engine (WhisperKit large-v3-turbo by default) and the text is pasted into whatever app you were using.
 
 ## Architecture
 
@@ -51,7 +52,8 @@ FreeWhisper sits in your menu bar. When you press ⌥ Space, a floating capsule 
 Presentation  →  FloatingCapsuleView, MenuBarView, SettingsView
 Coordination  →  TranscriptionCoordinator (state machine)
 Services      →  AudioRecorderService, WhisperTranscriptionService,
-                  HotkeyService, PasteService, PermissionsManager
+                  Qwen3TranscriptionService, HotkeyService,
+                  PasteService, PermissionsManager
 Domain        →  Protocols, TranscriptionState enum
 ```
 
@@ -59,10 +61,10 @@ All services are protocol-based with dependency injection. The coordinator owns 
 
 ## Settings
 
-- Model selection (large-v3-turbo, large-v3, distil-large-v3, base.en, small.en)
+- Engine selection (WhisperKit or Qwen3-ASR)
+- Model selection (large-v3-turbo, large-v3, distil-large-v3, base.en, small.en — WhisperKit only)
 - Auto-paste toggle
 - Floating capsule toggle
-- Max recording duration
 - Launch at login
 
 ## Permissions
@@ -70,12 +72,13 @@ All services are protocol-based with dependency injection. The coordinator owns 
 | Permission | Required | Purpose |
 |---|---|---|
 | Microphone | Yes | Capture speech |
-| Accessibility | Optional | Auto-paste via Cmd+V simulation |
+| Accessibility | Optional | Auto-paste via key event simulation |
 
 ## Tech stack
 
 - Swift / SwiftUI / AppKit
 - [WhisperKit](https://github.com/argmaxinc/WhisperKit) — CoreML speech recognition
+- [qwen3-asr-swift](https://github.com/ivan-digital/qwen3-asr-swift) — MLX speech recognition
 - [HotKey](https://github.com/soffes/HotKey) — global keyboard shortcuts
 - AVAudioEngine — microphone capture
 - SwiftData — transcription history
