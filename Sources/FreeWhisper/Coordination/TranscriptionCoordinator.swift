@@ -7,6 +7,7 @@ final class TranscriptionCoordinator: ObservableObject {
     @Published private(set) var state: TranscriptionState = .idle
     @Published private(set) var audioLevel: Float = 0
     @Published private(set) var isModelLoaded = false
+    @Published private(set) var loadingStatus: ModelLoadingStatus = .idle
 
     private let audioRecorder: AudioRecording
     private let transcriptionService: Transcription
@@ -40,6 +41,7 @@ final class TranscriptionCoordinator: ObservableObject {
 
         setupHotkey()
         setupAudioLevelMonitor()
+        setupLoadingStatusMonitor()
     }
 
     func setupModelContainer(_ container: ModelContainer) {
@@ -84,6 +86,15 @@ final class TranscriptionCoordinator: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] level in
                 self?.audioLevel = level
+            }
+            .store(in: &cancellables)
+    }
+
+    private func setupLoadingStatusMonitor() {
+        transcriptionService.loadingStatusPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] status in
+                self?.loadingStatus = status
             }
             .store(in: &cancellables)
     }

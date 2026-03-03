@@ -20,13 +20,40 @@ struct MenuBarView: View {
 
     @ViewBuilder
     private var statusSection: some View {
-        Group {
-            if coordinator.isModelLoaded {
+        VStack(alignment: .leading, spacing: 4) {
+            switch coordinator.loadingStatus {
+            case .idle:
+                Label("Initializing...", systemImage: "circle.dashed")
+                    .foregroundStyle(.secondary)
+
+            case .downloading(let progress):
+                Label(
+                    "Downloading model: \(Int(progress * 100))%",
+                    systemImage: "arrow.down.circle"
+                )
+                .foregroundStyle(.orange)
+
+                ProgressView(value: progress)
+                    .progressViewStyle(.linear)
+                    .padding(.horizontal, 4)
+
+            case .prewarming:
+                Label("Optimizing for your device...", systemImage: "cpu")
+                    .foregroundStyle(.orange)
+
+            case .loading:
+                Label("Loading model...", systemImage: "memorychip")
+                    .foregroundStyle(.orange)
+
+            case .ready:
                 Label("Ready", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
-            } else {
-                Label("Loading model...", systemImage: "arrow.down.circle")
-                    .foregroundStyle(.orange)
+
+            case .failed(let message):
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.red)
+                    .lineLimit(2)
+                    .font(.caption)
             }
         }
         .padding(.horizontal, 8)
