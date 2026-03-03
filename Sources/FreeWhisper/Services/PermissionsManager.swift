@@ -15,6 +15,12 @@ final class PermissionsManager: PermissionsChecking {
         await AVCaptureDevice.requestAccess(for: .audio)
     }
 
+    func promptAccessibilityIfNeeded() {
+        guard !accessibilityGranted else { return }
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
+        AXIsProcessTrustedWithOptions(options)
+    }
+
     func openAccessibilitySettings() {
         let url = URL(
             string:
