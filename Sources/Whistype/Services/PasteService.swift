@@ -9,7 +9,7 @@ final class PasteService: OutputPasting {
     func saveFrontmostApp() {
         savedFrontmostApp = NSWorkspace.shared.frontmostApplication
         NSLog(
-            "[FreeWhisper] Saved frontmost app: %@",
+            "[Whistype] Saved frontmost app: %@",
             savedFrontmostApp?.localizedName ?? "nil"
         )
     }
@@ -17,26 +17,28 @@ final class PasteService: OutputPasting {
     func paste(text: String) {
         // Re-activate the app that was in focus before recording
         if let app = savedFrontmostApp {
-            NSLog("[FreeWhisper] Re-activating: %@", app.localizedName ?? "unknown")
+            NSLog("[Whistype] Re-activating: %@", app.localizedName ?? "unknown")
             app.activate()
         }
 
-        guard AXIsProcessTrusted() else {
-            NSLog("[FreeWhisper] AX not trusted — copying to clipboard only")
+        if !AXIsProcessTrusted() {
+            NSLog("[Whistype] AX not trusted — prompting and copying to clipboard")
             copyToClipboard(text: text)
+            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
+            AXIsProcessTrustedWithOptions(options)
             savedFrontmostApp = nil
             return
         }
 
         // Strategy 1: Accessibility API — insert text directly at cursor
         if insertViaAccessibility(text: text) {
-            NSLog("[FreeWhisper] Text inserted via Accessibility API")
+            NSLog("[Whistype] Text inserted via Accessibility API")
             savedFrontmostApp = nil
             return
         }
 
         // Strategy 2: Clipboard + simulated Cmd+V
-        NSLog("[FreeWhisper] AX insert failed, falling back to Cmd+V")
+        NSLog("[Whistype] AX insert failed, falling back to Cmd+V")
         copyToClipboard(text: text)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
             self?.simulateCommandV()
@@ -48,7 +50,7 @@ final class PasteService: OutputPasting {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
-        NSLog("[FreeWhisper] Text copied to clipboard (%d chars)", text.count)
+        NSLog("[Whistype] Text copied to clipboard (%d chars)", text.count)
     }
 
     // MARK: - Strategy 1: Accessibility API
@@ -63,7 +65,7 @@ final class PasteService: OutputPasting {
             systemWide, kAXFocusedUIElementAttribute as CFString, &focusedRef
         )
         guard focusErr == .success, let focused = focusedRef else {
-            NSLog("[FreeWhisper] AX: No focused element (err %d)", focusErr.rawValue)
+            NSLog("[Whistype] AX: No focused element (err %d)", focusErr.rawValue)
             return false
         }
 
@@ -74,13 +76,13 @@ final class PasteService: OutputPasting {
             element, kAXRoleAttribute as CFString, &roleRef
         )
         guard roleErr == .success, let role = roleRef as? String else {
-            NSLog("[FreeWhisper] AX: Cannot read element role")
+            NSLog("[Whistype] AX: Cannot read element role")
             return false
         }
-        NSLog("[FreeWhisper] AX: Focused element role = %@", role)
+        NSLog("[Whistype] AX: Focused element role = %@", role)
 
         guard Self.textRoles.contains(role) else {
-            NSLog("[FreeWhisper] AX: Not a text input role (%@)", role)
+            NSLog("[Whistype] AX: Not a text input role (%@)", role)
             return false
         }
 
@@ -91,7 +93,7 @@ final class PasteService: OutputPasting {
             element, kAXSelectedTextAttribute as CFString, text as CFTypeRef
         )
         guard setErr == .success else {
-            NSLog("[FreeWhisper] AX: Set selected text failed (err %d)", setErr.rawValue)
+            NSLog("[Whistype] AX: Set selected text failed (err %d)", setErr.rawValue)
             return false
         }
 
@@ -99,7 +101,7 @@ final class PasteService: OutputPasting {
         if let before = valueBefore {
             let after = readAXValue(element)
             if before == after {
-                NSLog("[FreeWhisper] AX: Value unchanged — app ignores AX insertion")
+                NSLog("[Whistype] AX: Value unchanged — app ignores AX insertion")
                 return false
             }
         }
@@ -125,7 +127,7 @@ final class PasteService: OutputPasting {
         guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: true),
               let keyUp = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: false)
         else {
-            NSLog("[FreeWhisper] CGEvent creation failed, trying AppleScript")
+            NSLog("[Whistype] CGEvent creation failed, trying AppleScript")
             simulateAppleScriptPaste()
             return
         }
@@ -137,7 +139,7 @@ final class PasteService: OutputPasting {
         usleep(50_000)  // 50ms between key down and up
         keyUp.post(tap: .cghidEventTap)
 
-        NSLog("[FreeWhisper] CGEvent Cmd+V posted via cghidEventTap")
+        NSLog("[Whistype] CGEvent Cmd+V posted via cghidEventTap")
     }
 
     private func simulateAppleScriptPaste() {
@@ -149,9 +151,9 @@ final class PasteService: OutputPasting {
         var error: NSDictionary?
         script?.executeAndReturnError(&error)
         if let error {
-            NSLog("[FreeWhisper] AppleScript paste error: %@", error)
+            NSLog("[Whistype] AppleScript paste error: %@", error)
         } else {
-            NSLog("[FreeWhisper] AppleScript paste executed")
+            NSLog("[Whistype] AppleScript paste executed")
         }
     }
 }

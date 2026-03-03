@@ -11,7 +11,10 @@ final class DependencyContainer {
 
     init() {
         let recorder = AudioRecorderService()
-        let transcription = WhisperTranscriptionService()
+        let engine = UserDefaults.standard.string(forKey: "selectedEngine") ?? Constants.defaultEngine
+        let transcription: Transcription = engine == "qwen3-asr"
+            ? Qwen3TranscriptionService()
+            : WhisperTranscriptionService()
         let hotkey = HotkeyService()
         let paste = PasteService()
         let perms = PermissionsManager()

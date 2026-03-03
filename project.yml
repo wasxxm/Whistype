@@ -1,4 +1,4 @@
-name: FreeWhisper
+name: Whistype
 options:
   bundleIdPrefix: com.innowazi
   deploymentTarget:
@@ -13,22 +13,25 @@ packages:
   HotKey:
     url: https://github.com/soffes/HotKey
     from: "0.2.1"
+  Qwen3ASR:
+    url: https://github.com/ivan-digital/qwen3-asr-swift
+    branch: main
 
 targets:
-  FreeWhisper:
+  Whistype:
     type: application
     platform: macOS
     sources:
-      - Sources/FreeWhisper
+      - Sources/Whistype
     resources:
       - Resources
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.innowazi.FreeWhisper
+        PRODUCT_BUNDLE_IDENTIFIER: com.innowazi.Whistype
         MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: "1"
         INFOPLIST_FILE: Info.plist
-        CODE_SIGN_ENTITLEMENTS: FreeWhisper.entitlements
+        CODE_SIGN_ENTITLEMENTS: Whistype.entitlements
         SWIFT_VERSION: "5.9"
         MACOSX_DEPLOYMENT_TARGET: "14.0"
         ENABLE_HARDENED_RUNTIME: true
@@ -41,5 +44,7 @@ targets:
       - package: WhisperKit
         product: WhisperKit
       - package: HotKey
+      - package: Qwen3ASR
+        product: Qwen3ASR
     entitlements:
-      path: FreeWhisper.entitlements
+      path: Whistype.entitlements
