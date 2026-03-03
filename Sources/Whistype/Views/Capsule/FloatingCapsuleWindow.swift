@@ -19,26 +19,56 @@ final class FloatingCapsuleWindowController {
 
         let screenFrame = screen.visibleFrame
         let x = screenFrame.midX - Constants.capsuleWidth / 2
-        let y = screenFrame.minY + Constants.capsuleBottomPadding
+        let startY = screenFrame.minY + Constants.capsuleBottomPadding - 20
+        let endY = screenFrame.minY + Constants.capsuleBottomPadding
 
         window.setFrame(
             NSRect(
-                x: x, y: y,
+                x: x, y: startY,
                 width: Constants.capsuleWidth,
                 height: Constants.capsuleHeight
             ),
             display: true
         )
-
+        window.alphaValue = 0.0
         window.makeKeyAndOrderFront(nil)
-        window.animator().alphaValue = 1.0
+
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.35
+            context.timingFunction = CAMediaTimingFunction(
+                controlPoints: 0.34, 1.56, 0.64, 1.0
+            )
+            window.animator().setFrame(
+                NSRect(
+                    x: x, y: endY,
+                    width: Constants.capsuleWidth,
+                    height: Constants.capsuleHeight
+                ),
+                display: true
+            )
+            window.animator().alphaValue = 1.0
+        }
     }
 
     func hide() {
+        guard let window, let screen = NSScreen.main else { return }
+
+        let screenFrame = screen.visibleFrame
+        let x = screenFrame.midX - Constants.capsuleWidth / 2
+        let targetY = screenFrame.minY + Constants.capsuleBottomPadding - 12
+
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.25
             context.timingFunction = CAMediaTimingFunction(name: .easeIn)
-            window?.animator().alphaValue = 0.0
+            window.animator().setFrame(
+                NSRect(
+                    x: x, y: targetY,
+                    width: Constants.capsuleWidth,
+                    height: Constants.capsuleHeight
+                ),
+                display: true
+            )
+            window.animator().alphaValue = 0.0
         } completionHandler: { [weak self] in
             self?.window?.orderOut(nil)
         }
@@ -59,7 +89,7 @@ final class FloatingCapsuleWindowController {
         panel.level = .floating
         panel.isOpaque = false
         panel.backgroundColor = .clear
-        panel.hasShadow = true
+        panel.hasShadow = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.animationBehavior = .utilityWindow
         panel.isMovableByWindowBackground = false
@@ -69,7 +99,6 @@ final class FloatingCapsuleWindowController {
             rootView: FloatingCapsuleView(coordinator: coordinator)
         )
         panel.contentView = hostingView
-
         self.window = panel
     }
 

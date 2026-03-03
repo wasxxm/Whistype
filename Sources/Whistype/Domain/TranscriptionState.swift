@@ -27,6 +27,16 @@ enum TranscriptionState: Equatable {
         return false
     }
 
+    var stateKey: String {
+        switch self {
+        case .idle: "idle"
+        case .recording: "recording"
+        case .transcribing: "transcribing"
+        case .done: "done"
+        case .error: "error"
+        }
+    }
+
     var shouldShowCapsule: Bool {
         switch self {
         case .idle: return false

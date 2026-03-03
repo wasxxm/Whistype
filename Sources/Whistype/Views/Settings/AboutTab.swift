@@ -20,13 +20,13 @@ struct AboutTab: View {
 
             VStack(spacing: 8) {
                 infoRow(label: "Version", value: appVersion)
-                infoRow(label: "Engine", value: "WhisperKit (CoreML)")
+                infoRow(label: "Engine", value: "WhisperKit / Qwen3-ASR")
                 infoRow(label: "License", value: "MIT")
             }
 
             Spacer()
 
-            Link("View on GitHub", destination: URL(string: "https://github.com/InnoWazi/FreeWhisper")!)
+            Link("View on GitHub", destination: URL(string: "https://github.com/InnoWazi/Whistype")!)
                 .font(.subheadline)
         }
         .padding(24)

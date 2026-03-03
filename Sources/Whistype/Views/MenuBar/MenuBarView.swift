@@ -92,7 +92,7 @@ struct MenuBarView: View {
         Button {
             NSApplication.shared.terminate(nil)
         } label: {
-            Label("Quit FreeWhisper", systemImage: "power")
+            Label("Quit Whistype", systemImage: "power")
         }
         .keyboardShortcut("q", modifiers: .command)
     }

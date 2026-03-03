@@ -2,7 +2,7 @@ import SwiftData
 import SwiftUI
 
 @main
-struct FreeWhisperApp: App {
+struct WhistypeApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
@@ -18,7 +18,7 @@ struct FreeWhisperApp: App {
             SettingsView()
         }
 
-        Window("Welcome to FreeWhisper", id: "onboarding") {
+        Window("Welcome to Whistype", id: "onboarding") {
             OnboardingView(
                 permissions: appDelegate.container.permissions as! PermissionsManager,
                 coordinator: appDelegate.container.coordinator,

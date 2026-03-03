@@ -29,7 +29,6 @@ struct GeneralSettingsTab: View {
                     }
                 }
                 .pickerStyle(.menu)
-                .help("Restart app after changing engine.")
 
                 if selectedEngine == "whisperkit" {
                     Picker("Model", selection: $selectedModel) {
@@ -48,9 +47,6 @@ struct GeneralSettingsTab: View {
                     }
                 }
 
-                Text("Restart app to apply engine changes.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             Section("Behavior") {
@@ -63,7 +59,7 @@ struct GeneralSettingsTab: View {
 
             Section("System") {
                 Toggle("Launch at login", isOn: $launchAtLogin)
-                    .help("Start FreeWhisper when you log in to your Mac.")
+                    .help("Start Whistype when you log in to your Mac.")
 
                 HStack {
                     Text("Hotkey")

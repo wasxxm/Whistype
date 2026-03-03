@@ -87,7 +87,7 @@ struct OnboardingView: View {
                 .font(.title2)
                 .fontWeight(.semibold)
 
-            Text("FreeWhisper needs your microphone to capture speech for transcription. Audio never leaves your device.")
+            Text("Whistype needs your microphone to capture speech for transcription. Audio never leaves your device.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
 
@@ -180,7 +180,7 @@ struct OnboardingView: View {
                 }
                 .buttonStyle(.borderedProminent)
             } else {
-                Button("Start Using FreeWhisper") {
+                Button("Start Using Whistype") {
                     onComplete()
                     NSApplication.shared.keyWindow?.close()
                 }
