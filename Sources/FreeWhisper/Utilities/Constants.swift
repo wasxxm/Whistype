@@ -2,7 +2,7 @@ import Foundation
 
 enum Constants {
     static let appName = "FreeWhisper"
-    static let defaultModel = "large-v3-turbo"
+    static let defaultModel = "large-v3_turbo"
     static let maxHistoryCount = 50
     static let capsuleWidth: CGFloat = 280
     static let capsuleHeight: CGFloat = 48

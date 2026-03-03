@@ -53,8 +53,9 @@ final class TranscriptionCoordinator: ObservableObject {
             try await transcriptionService.loadModel(name: modelName)
             isModelLoaded = true
         } catch {
+            print("[FreeWhisper] Model load error: \(error)")
             state = .error(message: "Failed to load model: \(error.localizedDescription)")
-            scheduleDismiss(after: Constants.errorDismissDelay)
+            scheduleDismiss(after: 10.0)
         }
     }
 

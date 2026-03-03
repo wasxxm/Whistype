@@ -9,7 +9,7 @@ struct GeneralSettingsTab: View {
     @AppStorage("launchAtLogin") private var launchAtLogin = false
 
     private let availableModels = [
-        "large-v3-turbo",
+        "large-v3_turbo",
         "large-v3",
         "distil-large-v3",
         "base.en",
