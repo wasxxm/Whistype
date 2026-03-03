@@ -17,13 +17,8 @@ final class TranscriptionCoordinator: ObservableObject {
 
     private var modelContainer: ModelContainer?
     private var cancellables = Set<AnyCancellable>()
-    private var recordingTimer: Timer?
     private var autoPasteEnabled: Bool {
         UserDefaults.standard.bool(forKey: "autoPasteEnabled")
-    }
-    private var maxRecordingSeconds: Int {
-        let value = UserDefaults.standard.integer(forKey: "maxRecordingSeconds")
-        return value > 0 ? value : Constants.defaultMaxRecordingSeconds
     }
 
     init(
@@ -51,35 +46,46 @@ final class TranscriptionCoordinator: ObservableObject {
     func loadModel() async {
         let modelName = UserDefaults.standard.string(forKey: "selectedModel")
             ?? Constants.defaultModel
+        NSLog("[FreeWhisper] Loading model: %@", modelName)
         do {
             try await transcriptionService.loadModel(name: modelName)
             isModelLoaded = true
+            NSLog("[FreeWhisper] Model loaded, ready to transcribe")
         } catch {
-            print("[FreeWhisper] Model load error: \(error)")
+            NSLog("[FreeWhisper] Model load error: %@", error.localizedDescription)
             state = .error(message: "Failed to load model: \(error.localizedDescription)")
-            scheduleDismiss(after: 10.0)
+            scheduleDismiss(after: Constants.errorDismissDelay)
         }
     }
 
-    func toggle() {
-        switch state {
-        case .idle:
-            startRecording()
-        case .recording:
-            stopRecordingAndTranscribe()
-        default:
-            break
-        }
-    }
+    // MARK: - Push-to-talk
 
     private func setupHotkey() {
-        hotkeyService.onToggle = { [weak self] in
+        hotkeyService.onKeyDown = { [weak self] in
             Task { @MainActor in
-                self?.toggle()
+                self?.handleKeyDown()
+            }
+        }
+        hotkeyService.onKeyUp = { [weak self] in
+            Task { @MainActor in
+                self?.handleKeyUp()
             }
         }
         hotkeyService.register()
     }
+
+    private func handleKeyDown() {
+        guard isModelLoaded else { return }
+        guard case .idle = state else { return }
+        startRecording()
+    }
+
+    private func handleKeyUp() {
+        guard case .recording = state else { return }
+        stopRecordingAndTranscribe()
+    }
+
+    // MARK: - Audio level monitor
 
     private func setupAudioLevelMonitor() {
         audioRecorder.audioLevelPublisher
@@ -98,6 +104,8 @@ final class TranscriptionCoordinator: ObservableObject {
             }
             .store(in: &cancellables)
     }
+
+    // MARK: - Recording
 
     private func startRecording() {
         if permissions.microphoneGranted {
@@ -119,7 +127,7 @@ final class TranscriptionCoordinator: ObservableObject {
         do {
             try audioRecorder.startRecording()
             state = .recording(startTime: .now)
-            startRecordingTimer()
+            NSLog("[FreeWhisper] Recording started")
         } catch {
             state = .error(message: error.localizedDescription)
             scheduleDismiss(after: Constants.errorDismissDelay)
@@ -129,25 +137,27 @@ final class TranscriptionCoordinator: ObservableObject {
     private func stopRecordingAndTranscribe() {
         guard case .recording(let startTime) = state else { return }
 
-        recordingTimer?.invalidate()
-        recordingTimer = nil
-
         let samples = audioRecorder.stopRecording()
         let duration = Date.now.timeIntervalSince(startTime)
         state = .transcribing
+        NSLog("[FreeWhisper] Recording stopped, transcribing %d samples", samples.count)
 
         Task {
             do {
                 let text = try await transcriptionService.transcribe(samples: samples)
                 state = .done(text: text)
+                NSLog("[FreeWhisper] Transcription: %@", text)
                 handleTranscriptionResult(text: text, duration: duration)
                 scheduleDismiss(after: Constants.doneDismissDelay)
             } catch {
+                NSLog("[FreeWhisper] Transcription error: %@", error.localizedDescription)
                 state = .error(message: error.localizedDescription)
                 scheduleDismiss(after: Constants.errorDismissDelay)
             }
         }
     }
+
+    // MARK: - Result handling
 
     private func handleTranscriptionResult(text: String, duration: Double) {
         if autoPasteEnabled && permissions.accessibilityGranted {
@@ -176,17 +186,6 @@ final class TranscriptionCoordinator: ObservableObject {
 
         for record in allRecords.dropFirst(Constants.maxHistoryCount) {
             context.delete(record)
-        }
-    }
-
-    private func startRecordingTimer() {
-        recordingTimer = Timer.scheduledTimer(
-            withTimeInterval: TimeInterval(maxRecordingSeconds),
-            repeats: false
-        ) { [weak self] _ in
-            Task { @MainActor in
-                self?.stopRecordingAndTranscribe()
-            }
         }
     }
 

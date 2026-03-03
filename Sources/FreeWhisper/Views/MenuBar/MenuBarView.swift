@@ -62,17 +62,18 @@ struct MenuBarView: View {
 
     @ViewBuilder
     private var actionSection: some View {
-        Button {
-            coordinator.toggle()
-        } label: {
-            if coordinator.state.isRecording {
-                Label("Stop Recording", systemImage: "stop.circle")
-            } else {
-                Label("Start Recording (⌥ Space)", systemImage: "mic.circle")
-            }
+        if coordinator.state.isRecording {
+            Label("Recording... release ⌥ Space to stop", systemImage: "mic.fill")
+                .foregroundStyle(.red)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+        } else {
+            Text("Hold ⌥ Space to record")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
         }
-        .keyboardShortcut(.space, modifiers: .option)
-        .disabled(!coordinator.isModelLoaded)
 
         Button {
             openWindow(id: "history")

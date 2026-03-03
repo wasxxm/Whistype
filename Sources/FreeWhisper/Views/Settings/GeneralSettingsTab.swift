@@ -4,8 +4,6 @@ struct GeneralSettingsTab: View {
     @AppStorage("selectedModel") private var selectedModel = Constants.defaultModel
     @AppStorage("autoPasteEnabled") private var autoPasteEnabled = true
     @AppStorage("showCapsule") private var showCapsule = true
-    @AppStorage("maxRecordingSeconds") private var maxRecordingSeconds =
-        Constants.defaultMaxRecordingSeconds
     @AppStorage("launchAtLogin") private var launchAtLogin = false
 
     private let availableModels = [
@@ -34,14 +32,6 @@ struct GeneralSettingsTab: View {
 
                 Toggle("Show floating capsule", isOn: $showCapsule)
                     .help("Show the recording indicator at the bottom of the screen.")
-
-                Stepper(
-                    "Max recording: \(maxRecordingSeconds)s",
-                    value: $maxRecordingSeconds,
-                    in: 10...300,
-                    step: 10
-                )
-                .help("Automatically stop recording after this duration.")
             }
 
             Section("System") {

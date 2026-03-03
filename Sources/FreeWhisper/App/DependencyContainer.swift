@@ -1,7 +1,7 @@
 import Foundation
 
 @MainActor
-final class DependencyContainer: ObservableObject {
+final class DependencyContainer {
     let audioRecorder: AudioRecording
     let transcriptionService: Transcription
     let hotkeyService: HotkeyBinding

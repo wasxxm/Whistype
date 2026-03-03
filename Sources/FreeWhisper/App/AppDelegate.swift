@@ -3,25 +3,29 @@ import SwiftData
 import SwiftUI
 
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
+    let container = DependencyContainer()
+    private(set) var modelContainer: ModelContainer!
     private var capsuleWindowController: FloatingCapsuleWindowController?
-    var coordinator: TranscriptionCoordinator?
-    var modelContainer: ModelContainer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSLog("[FreeWhisper] applicationDidFinishLaunching")
         NSApp.setActivationPolicy(.accessory)
-    }
 
-    func setupCapsule() {
-        guard let coordinator else { return }
-        capsuleWindowController = FloatingCapsuleWindowController(coordinator: coordinator)
-    }
+        let schema = Schema([TranscriptionRecord.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        do {
+            modelContainer = try ModelContainer(for: schema, configurations: [config])
+        } catch {
+            fatalError("Failed to create ModelContainer: \(error)")
+        }
 
-    func setupAndLoadModel() {
-        guard let coordinator, let modelContainer else { return }
-        coordinator.setupModelContainer(modelContainer)
+        container.coordinator.setupModelContainer(modelContainer)
+        capsuleWindowController = FloatingCapsuleWindowController(coordinator: container.coordinator)
+
+        NSLog("[FreeWhisper] Starting model load")
         Task {
-            await coordinator.loadModel()
+            await container.coordinator.loadModel()
         }
     }
 }

@@ -10,6 +10,5 @@ enum Constants {
     static let capsuleBottomPadding: CGFloat = 80
     static let doneDismissDelay: TimeInterval = 1.5
     static let errorDismissDelay: TimeInterval = 2.0
-    static let defaultMaxRecordingSeconds = 120
     static let audioSampleRate: Double = 16000
 }

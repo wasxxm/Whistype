@@ -2,14 +2,18 @@ import Foundation
 import HotKey
 
 final class HotkeyService: HotkeyBinding {
-    var onToggle: (() -> Void)?
+    var onKeyDown: (() -> Void)?
+    var onKeyUp: (() -> Void)?
 
     private var hotKey: HotKey?
 
     func register() {
         hotKey = HotKey(key: .space, modifiers: [.option])
         hotKey?.keyDownHandler = { [weak self] in
-            self?.onToggle?()
+            self?.onKeyDown?()
+        }
+        hotKey?.keyUpHandler = { [weak self] in
+            self?.onKeyUp?()
         }
     }
 
