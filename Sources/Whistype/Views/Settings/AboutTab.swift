@@ -2,46 +2,68 @@ import SwiftUI
 
 struct AboutTab: View {
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 0) {
+            Spacer()
+
             Image(systemName: "waveform.circle.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(.blue)
+                .font(.system(size: 64))
+                .foregroundStyle(
+                    .linearGradient(
+                        colors: [.blue, .cyan],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
 
             Text(Constants.appName)
                 .font(.title)
-                .fontWeight(.semibold)
+                .fontWeight(.bold)
+                .padding(.top, 12)
+
+            Text("Version \(appVersion)")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .padding(.top, 2)
 
             Text("Free, open-source speech-to-text for macOS")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .padding(.top, 8)
 
-            Divider()
-                .frame(width: 200)
-
-            VStack(spacing: 8) {
-                infoRow(label: "Version", value: appVersion)
-                infoRow(label: "Engine", value: "WhisperKit / Qwen3-ASR")
+            VStack(spacing: 6) {
+                infoRow(label: "Engines", value: "WhisperKit / Qwen3-ASR")
                 infoRow(label: "License", value: "MIT")
             }
+            .padding(.top, 20)
 
             Spacer()
 
-            Link("View on GitHub", destination: URL(string: "https://github.com/InnoWazi/Whistype")!)
-                .font(.subheadline)
+            Link(destination: URL(string: "https://github.com/InnoWazi/Whistype")!) {
+                HStack(spacing: 5) {
+                    Image(systemName: "arrow.up.right.square")
+                        .font(.caption)
+                    Text("View on GitHub")
+                        .font(.subheadline)
+                }
+                .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .padding(.bottom, 20)
         }
-        .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func infoRow(label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.tertiary)
+                .font(.subheadline)
             Spacer()
             Text(value)
+                .font(.subheadline)
                 .fontWeight(.medium)
         }
-        .frame(width: 220)
+        .frame(width: 240)
     }
 
     private var appVersion: String {
