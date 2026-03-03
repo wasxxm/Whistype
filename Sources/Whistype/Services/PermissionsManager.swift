@@ -17,8 +17,8 @@ final class PermissionsManager: PermissionsChecking {
 
     func promptAccessibilityIfNeeded() {
         guard !accessibilityGranted else { return }
-        guard !UserDefaults.standard.bool(forKey: "hasPromptedAccessibility") else { return }
-        UserDefaults.standard.set(true, forKey: "hasPromptedAccessibility")
+        guard !UserDefaults.standard.bool(forKey: Constants.Keys.hasPromptedAccessibility) else { return }
+        UserDefaults.standard.set(true, forKey: Constants.Keys.hasPromptedAccessibility)
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
         AXIsProcessTrustedWithOptions(options)
     }

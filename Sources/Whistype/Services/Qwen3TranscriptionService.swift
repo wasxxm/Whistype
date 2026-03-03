@@ -17,13 +17,18 @@ final class Qwen3TranscriptionService: Transcription {
         loadingStatusSubject.send(.downloading(progress: 0))
         loadingStatusSubject.send(.loading)
 
-        NSLog("[Whistype] Downloading Qwen3-ASR model (~400MB on first run)")
-        let asrModel = try await Qwen3ASRModel.fromPretrained()
-
-        model = asrModel
-        isModelLoaded = true
-        loadingStatusSubject.send(.ready)
-        NSLog("[Whistype] Qwen3-ASR model ready")
+        do {
+            NSLog("[Whistype] Downloading Qwen3-ASR model (~400MB on first run)")
+            let asrModel = try await Qwen3ASRModel.fromPretrained()
+            model = asrModel
+            isModelLoaded = true
+            loadingStatusSubject.send(.ready)
+            NSLog("[Whistype] Qwen3-ASR model ready")
+        } catch {
+            loadingStatusSubject.send(.failed(message: error.localizedDescription))
+            NSLog("[Whistype] Qwen3-ASR model load failed: %@", error.localizedDescription)
+            throw error
+        }
     }
 
     func transcribe(samples: [Float]) async throws -> String {

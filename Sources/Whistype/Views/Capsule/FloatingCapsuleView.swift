@@ -190,6 +190,9 @@ private struct DoneContent: View {
                 appeared = true
             }
         }
+        .onDisappear {
+            appeared = false
+        }
     }
 }
 

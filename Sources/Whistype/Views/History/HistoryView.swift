@@ -6,6 +6,7 @@ struct HistoryView: View {
     private var records: [TranscriptionRecord]
 
     @Environment(\.modelContext) private var modelContext
+    @State private var showClearConfirmation = false
 
     var body: some View {
         Group {
@@ -16,6 +17,13 @@ struct HistoryView: View {
             }
         }
         .frame(minWidth: 400, minHeight: 300)
+        .confirmationDialog(
+            "Delete all transcription history?",
+            isPresented: $showClearConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete All", role: .destructive) { clearAll() }
+        }
     }
 
     @ViewBuilder
@@ -38,18 +46,22 @@ struct HistoryView: View {
     private var recordsList: some View {
         List {
             ForEach(records) { record in
-                HistoryRow(record: record)
+                HistoryRow(record: record, onDelete: { deleteRecord(record) })
             }
             .onDelete(perform: deleteRecords)
         }
         .toolbar {
             ToolbarItem(placement: .destructiveAction) {
                 Button("Clear All") {
-                    clearAll()
+                    showClearConfirmation = true
                 }
                 .disabled(records.isEmpty)
             }
         }
+    }
+
+    private func deleteRecord(_ record: TranscriptionRecord) {
+        modelContext.delete(record)
     }
 
     private func deleteRecords(at offsets: IndexSet) {
@@ -67,6 +79,7 @@ struct HistoryView: View {
 
 private struct HistoryRow: View {
     let record: TranscriptionRecord
+    let onDelete: () -> Void
 
     @State private var isHovering = false
     @State private var showCopied = false
@@ -116,7 +129,7 @@ private struct HistoryRow: View {
         }
         .contextMenu {
             Button("Copy") { copyText() }
-            Button("Delete", role: .destructive) {}
+            Button("Delete", role: .destructive) { onDelete() }
         }
     }
 
@@ -124,7 +137,8 @@ private struct HistoryRow: View {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(record.text, forType: .string)
         showCopied = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        Task {
+            try? await Task.sleep(for: .seconds(1.5))
             showCopied = false
         }
     }

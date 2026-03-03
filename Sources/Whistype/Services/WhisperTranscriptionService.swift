@@ -16,9 +16,6 @@ final class WhisperTranscriptionService: Transcription {
         NSLog("[Whistype] loadModel started for: %@", name)
         loadingStatusSubject.send(.downloading(progress: 0))
 
-        // Let WhisperKit handle download + prewarm + load in one pass.
-        // On first launch CoreML compiles the model for ANE (~18s).
-        // Subsequent launches use the cached compilation and are fast.
         let config = WhisperKitConfig(
             model: name,
             verbose: false,
@@ -30,12 +27,18 @@ final class WhisperTranscriptionService: Transcription {
 
         loadingStatusSubject.send(.loading)
         NSLog("[Whistype] Creating WhisperKit (download + prewarm + load)")
-        let kit = try await WhisperKit(config)
 
-        whisperKit = kit
-        isModelLoaded = true
-        loadingStatusSubject.send(.ready)
-        NSLog("[Whistype] Model ready")
+        do {
+            let kit = try await WhisperKit(config)
+            whisperKit = kit
+            isModelLoaded = true
+            loadingStatusSubject.send(.ready)
+            NSLog("[Whistype] Model ready")
+        } catch {
+            loadingStatusSubject.send(.failed(message: error.localizedDescription))
+            NSLog("[Whistype] Model load failed: %@", error.localizedDescription)
+            throw error
+        }
     }
 
     func transcribe(samples: [Float]) async throws -> String {
@@ -53,7 +56,7 @@ final class WhisperTranscriptionService: Transcription {
             skipSpecialTokens: true,
             withoutTimestamps: true,
             suppressBlank: true,
-            concurrentWorkerCount: 16
+            concurrentWorkerCount: 4
         )
 
         let result = try await whisperKit.transcribe(
@@ -68,19 +71,5 @@ final class WhisperTranscriptionService: Transcription {
         }
 
         return text
-    }
-}
-
-enum TranscriptionError: LocalizedError {
-    case modelNotLoaded
-    case emptyResult
-
-    var errorDescription: String? {
-        switch self {
-        case .modelNotLoaded:
-            return "Whisper model is not loaded."
-        case .emptyResult:
-            return "No speech detected in audio."
-        }
     }
 }

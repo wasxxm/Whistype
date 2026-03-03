@@ -1,14 +1,14 @@
 import SwiftUI
 
 struct OnboardingView: View {
-    let permissions: PermissionsManager
+    let permissions: PermissionsChecking
     @ObservedObject var coordinator: TranscriptionCoordinator
     let onComplete: () -> Void
 
     @State private var currentStep = 0
     @State private var micGranted = false
     @State private var accessibilityGranted = false
-    @State private var modelDownloadProgress: String?
+
 
     private let totalSteps = 4
 
@@ -187,22 +187,5 @@ struct OnboardingView: View {
                 .buttonStyle(.borderedProminent)
             }
         }
-    }
-}
-
-struct KeyCapView: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .font(.system(.title3, design: .rounded, weight: .medium))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(Color.secondary.opacity(0.12))
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
-            )
     }
 }

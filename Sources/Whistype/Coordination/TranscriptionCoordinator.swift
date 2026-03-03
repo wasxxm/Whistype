@@ -18,8 +18,9 @@ final class TranscriptionCoordinator: ObservableObject {
     private var modelContainer: ModelContainer?
     private var cancellables = Set<AnyCancellable>()
     private var loadingStatusCancellable: AnyCancellable?
+    private var dismissTask: Task<Void, Never>?
     private var autoPasteEnabled: Bool {
-        UserDefaults.standard.bool(forKey: "autoPasteEnabled")
+        UserDefaults.standard.bool(forKey: Constants.Keys.autoPasteEnabled)
     }
 
     init(
@@ -45,7 +46,7 @@ final class TranscriptionCoordinator: ObservableObject {
     }
 
     func loadModel() async {
-        let modelName = UserDefaults.standard.string(forKey: "selectedModel")
+        let modelName = UserDefaults.standard.string(forKey: Constants.Keys.selectedModel)
             ?? Constants.defaultModel
         NSLog("[Whistype] Loading model: %@", modelName)
         do {
@@ -84,6 +85,7 @@ final class TranscriptionCoordinator: ObservableObject {
             return
         }
         guard case .idle = state else { return }
+        dismissTask?.cancel()
         startRecording()
     }
 
@@ -227,8 +229,10 @@ final class TranscriptionCoordinator: ObservableObject {
     }
 
     private func scheduleDismiss(after delay: TimeInterval) {
-        Task {
+        dismissTask?.cancel()
+        dismissTask = Task {
             try? await Task.sleep(for: .seconds(delay))
+            guard !Task.isCancelled else { return }
             if case .done = state { state = .idle }
             if case .error = state { state = .idle }
         }

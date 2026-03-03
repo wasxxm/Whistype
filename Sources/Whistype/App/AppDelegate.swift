@@ -27,6 +27,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         container.permissions.promptAccessibilityIfNeeded()
         capsuleWindowController = FloatingCapsuleWindowController(coordinator: container.coordinator)
 
+        if !UserDefaults.standard.bool(forKey: Constants.Keys.hasCompletedOnboarding) {
+            NSApp.setActivationPolicy(.regular)
+            DispatchQueue.main.async {
+                NSApp.activate(ignoringOtherApps: true)
+                if let window = NSApp.windows.first(where: {
+                    $0.title.contains("Welcome")
+                }) {
+                    window.makeKeyAndOrderFront(nil)
+                }
+            }
+        }
+
         NSLog("[Whistype] Starting model load")
         Task {
             await container.coordinator.loadModel()

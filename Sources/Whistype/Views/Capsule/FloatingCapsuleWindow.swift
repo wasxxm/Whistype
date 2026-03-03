@@ -7,6 +7,7 @@ final class FloatingCapsuleWindowController {
     private var window: NSPanel?
     private var coordinator: TranscriptionCoordinator
     private var cancellable: AnyCancellable?
+    private var isShowing = false
 
     init(coordinator: TranscriptionCoordinator) {
         self.coordinator = coordinator
@@ -15,7 +16,8 @@ final class FloatingCapsuleWindowController {
     }
 
     func show() {
-        guard let window, let screen = NSScreen.main else { return }
+        guard !isShowing, let window, let screen = NSScreen.main else { return }
+        isShowing = true
 
         let screenFrame = screen.visibleFrame
         let x = screenFrame.midX - Constants.capsuleWidth / 2
@@ -51,7 +53,8 @@ final class FloatingCapsuleWindowController {
     }
 
     func hide() {
-        guard let window, let screen = NSScreen.main else { return }
+        guard isShowing, let window, let screen = NSScreen.main else { return }
+        isShowing = false
 
         let screenFrame = screen.visibleFrame
         let x = screenFrame.midX - Constants.capsuleWidth / 2
@@ -106,7 +109,7 @@ final class FloatingCapsuleWindowController {
         cancellable = coordinator.$state
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
-                let showCapsule = UserDefaults.standard.bool(forKey: "showCapsule")
+                let showCapsule = UserDefaults.standard.bool(forKey: Constants.Keys.showCapsule)
                 guard showCapsule else { return }
 
                 if state.shouldShowCapsule {
