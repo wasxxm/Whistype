@@ -1,6 +1,6 @@
 # Whistype
 
-Free, fast, on-device speech-to-text for macOS. Supports [WhisperKit](https://github.com/argmaxinc/WhisperKit) (CoreML) and [Qwen3-ASR](https://github.com/ivan-digital/qwen3-asr-swift) (MLX) engines on Apple Silicon.
+Free, fast, on-device speech-to-text for macOS. Supports [WhisperKit](https://github.com/argmaxinc/WhisperKit) (CoreML), [Qwen3-ASR](https://github.com/ivan-digital/qwen3-asr-swift) (MLX), and [ParakeetASR](https://github.com/ivan-digital/qwen3-asr-swift) (MLX) engines on Apple Silicon.
 
 Hold **⌥ Space** anywhere to dictate. Release to stop. Text is transcribed locally and pasted into the active app.
 
@@ -8,7 +8,7 @@ Hold **⌥ Space** anywhere to dictate. Release to stop. Text is transcribed loc
 
 - **Zero cost** — no subscription, no API keys, no cloud
 - **On-device** — audio never leaves your Mac
-- **Dual engine** — WhisperKit (CoreML) or Qwen3-ASR (MLX), switchable in settings
+- **Three engines** — WhisperKit (CoreML), Qwen3-ASR (MLX), or ParakeetASR (MLX), switchable in settings
 - **Fast** — CoreML + Apple Neural Engine or MLX acceleration on M-series chips
 - **Global hotkey** — hold ⌥ Space from any app
 - **Floating capsule** — minimal recording indicator at bottom of screen
@@ -19,15 +19,24 @@ Hold **⌥ Space** anywhere to dictate. Release to stop. Text is transcribed loc
 ## Requirements
 
 - macOS 14.0 (Sonoma) or later
-- Apple Silicon (M1/M2/M3/M4) recommended
-- Xcode 16.0+ (for building from source)
+- Apple Silicon (M1 or later) — required
+- Xcode 16.0+ (for building from source only)
 
 ## Install
+
+### Download (recommended)
+
+Download the latest notarized DMG from [GitHub Releases](https://github.com/wasxxm/Whistype/releases/latest):
+
+1. Download `Whistype-1.0.0.dmg`
+2. Open the DMG and drag Whistype to Applications
+3. Launch Whistype from Applications
+4. Follow the onboarding to grant microphone and accessibility permissions
 
 ### Build from source
 
 ```bash
-git clone https://github.com/InnoWazi/Whistype.git
+git clone https://github.com/wasxxm/Whistype.git
 cd Whistype
 xcodegen generate
 open Whistype.xcodeproj
@@ -39,7 +48,7 @@ Select the Whistype scheme and press ⌘R to build and run.
 
 1. Grant microphone access when prompted
 2. Grant Accessibility access in System Settings (for auto-paste)
-3. The model downloads automatically on first use (~1.5 GB for WhisperKit, ~400 MB for Qwen3-ASR)
+3. The model downloads automatically on first use (~1.5 GB for WhisperKit, ~400 MB for Qwen3-ASR/ParakeetASR)
 4. Hold ⌥ Space to dictate, release to stop
 
 ## How it works
@@ -52,8 +61,8 @@ Whistype sits in your menu bar. Hold ⌥ Space and a floating capsule appears at
 Presentation  →  FloatingCapsuleView, MenuBarView, SettingsView
 Coordination  →  TranscriptionCoordinator (state machine)
 Services      →  AudioRecorderService, WhisperTranscriptionService,
-                  Qwen3TranscriptionService, HotkeyService,
-                  PasteService, PermissionsManager
+                  Qwen3TranscriptionService, ParakeetTranscriptionService,
+                  HotkeyService, PasteService, PermissionsManager
 Domain        →  Protocols, TranscriptionState enum
 ```
 
@@ -61,7 +70,7 @@ All services are protocol-based with dependency injection. The coordinator owns 
 
 ## Settings
 
-- Engine selection (WhisperKit or Qwen3-ASR)
+- Engine selection (WhisperKit, Qwen3-ASR, or ParakeetASR)
 - Model selection (large-v3-turbo, large-v3, distil-large-v3, base.en, small.en — WhisperKit only)
 - Auto-paste toggle
 - Floating capsule toggle
@@ -78,7 +87,7 @@ All services are protocol-based with dependency injection. The coordinator owns 
 
 - Swift / SwiftUI / AppKit
 - [WhisperKit](https://github.com/argmaxinc/WhisperKit) — CoreML speech recognition
-- [qwen3-asr-swift](https://github.com/ivan-digital/qwen3-asr-swift) — MLX speech recognition
+- [qwen3-asr-swift](https://github.com/ivan-digital/qwen3-asr-swift) — MLX speech recognition (Qwen3-ASR and ParakeetASR)
 - [HotKey](https://github.com/soffes/HotKey) — global keyboard shortcuts
 - AVAudioEngine — microphone capture
 - SwiftData — transcription history
