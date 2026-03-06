@@ -80,10 +80,20 @@ All services are protocol-based with dependency injection. The coordinator owns 
 
 ## Permissions
 
+Both permissions are requested together during onboarding.
+
 | Permission | Required | Purpose |
 |---|---|---|
-| Microphone | Yes | Capture speech |
-| Accessibility | Optional | Auto-paste via key event simulation |
+| Microphone | Yes | Capture audio while ⌥ Space is held |
+| Accessibility | Recommended | Auto-paste transcribed text into the active app |
+
+**Why Accessibility?** Whistype simulates a ⌘V keystroke to paste text into whichever app you were using. macOS requires Accessibility permission for any app to send keystrokes to other apps. Without it, text is still copied to your clipboard automatically — you just have to paste manually with ⌘V.
+
+**If you missed it or denied it during onboarding:**
+1. Open **System Settings → Privacy & Security → Accessibility**
+2. Click **+**, navigate to `/Applications/Whistype.app`, and add it
+3. Toggle **Whistype On**
+4. Relaunch Whistype
 
 ## Tech stack
 
