@@ -8,11 +8,18 @@ final class FloatingCapsuleWindowController {
     private var coordinator: TranscriptionCoordinator
     private var cancellable: AnyCancellable?
     private var isShowing = false
+    private var escapeMonitor: Any?
 
     init(coordinator: TranscriptionCoordinator) {
         self.coordinator = coordinator
         setupWindow()
         observeState()
+    }
+
+    deinit {
+        if let monitor = escapeMonitor {
+            NSEvent.removeMonitor(monitor)
+        }
     }
 
     func show() {
@@ -33,7 +40,7 @@ final class FloatingCapsuleWindowController {
             display: true
         )
         window.alphaValue = 0.0
-        window.makeKeyAndOrderFront(nil)
+        window.orderFront(nil)
 
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.35
@@ -50,11 +57,12 @@ final class FloatingCapsuleWindowController {
             )
             window.animator().alphaValue = 1.0
         }
+
+        installEscapeMonitor()
     }
 
     func hide() {
         guard isShowing, let window, let screen = NSScreen.main else { return }
-        isShowing = false
 
         let screenFrame = screen.visibleFrame
         let x = screenFrame.midX - Constants.capsuleWidth / 2
@@ -74,7 +82,10 @@ final class FloatingCapsuleWindowController {
             window.animator().alphaValue = 0.0
         } completionHandler: { [weak self] in
             self?.window?.orderOut(nil)
+            self?.isShowing = false
         }
+
+        removeEscapeMonitor()
     }
 
     private func setupWindow() {
@@ -103,6 +114,23 @@ final class FloatingCapsuleWindowController {
         )
         panel.contentView = hostingView
         self.window = panel
+    }
+
+    private func installEscapeMonitor() {
+        guard escapeMonitor == nil else { return }
+        escapeMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard event.keyCode == 53 else { return }
+            Task { @MainActor in
+                self?.coordinator.cancelRecording()
+            }
+        }
+    }
+
+    private func removeEscapeMonitor() {
+        if let monitor = escapeMonitor {
+            NSEvent.removeMonitor(monitor)
+            escapeMonitor = nil
+        }
     }
 
     private func observeState() {

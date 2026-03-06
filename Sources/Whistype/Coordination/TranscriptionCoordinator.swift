@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import os
 import SwiftData
 
 @MainActor
@@ -18,6 +19,7 @@ final class TranscriptionCoordinator: ObservableObject {
     private var modelContainer: ModelContainer?
     private var cancellables = Set<AnyCancellable>()
     private var loadingStatusCancellable: AnyCancellable?
+    private var transcriptionTask: Task<Void, Never>?
     private var dismissTask: Task<Void, Never>?
     private var autoPasteEnabled: Bool {
         UserDefaults.standard.bool(forKey: Constants.Keys.autoPasteEnabled)
@@ -48,13 +50,13 @@ final class TranscriptionCoordinator: ObservableObject {
     func loadModel() async {
         let modelName = UserDefaults.standard.string(forKey: Constants.Keys.selectedModel)
             ?? Constants.defaultModel
-        NSLog("[Whistype] Loading model: %@", modelName)
+        Logger.coordinator.info("Loading model: \(modelName)")
         do {
             try await transcriptionService.loadModel(name: modelName)
             isModelLoaded = true
-            NSLog("[Whistype] Model loaded, ready to transcribe")
+            Logger.coordinator.info("Model loaded, ready to transcribe")
         } catch {
-            NSLog("[Whistype] Model load error: %@", error.localizedDescription)
+            Logger.coordinator.error("Model load error: \(error.localizedDescription)")
             state = .error(message: "Failed to load model: \(error.localizedDescription)")
             scheduleDismiss(after: Constants.errorDismissDelay)
         }
@@ -80,7 +82,7 @@ final class TranscriptionCoordinator: ObservableObject {
         guard isModelLoaded else {
             if case .idle = state {
                 state = .error(message: loadingStatus.displayText)
-                scheduleDismiss(after: 1.5)
+                scheduleDismiss(after: Constants.errorDismissDelay)
             }
             return
         }
@@ -115,15 +117,33 @@ final class TranscriptionCoordinator: ObservableObject {
 
     func switchEngine(to service: Transcription) async {
         guard case .idle = state else {
-            NSLog("[Whistype] Cannot switch engine while %@ is active", "\(state)")
+            Logger.coordinator.warning("Cannot switch engine while \(String(describing: self.state)) is active")
             return
         }
-        NSLog("[Whistype] Switching engine")
+        Logger.coordinator.info("Switching engine")
         transcriptionService = service
         isModelLoaded = false
         loadingStatus = .idle
         setupLoadingStatusMonitor()
         await loadModel()
+    }
+
+    // MARK: - Cancel
+
+    func cancelRecording() {
+        switch state {
+        case .recording:
+            _ = audioRecorder.stopRecording()
+            state = .idle
+            Logger.coordinator.info("Recording cancelled by user")
+        case .transcribing:
+            transcriptionTask?.cancel()
+            transcriptionTask = nil
+            state = .idle
+            Logger.coordinator.info("Transcription cancelled by user")
+        default:
+            break
+        }
     }
 
     // MARK: - Recording
@@ -132,7 +152,7 @@ final class TranscriptionCoordinator: ObservableObject {
         if permissions.microphoneGranted {
             beginRecording()
         } else {
-            Task {
+            Task { @MainActor in
                 let granted = await permissions.requestMicrophone()
                 if granted {
                     beginRecording()
@@ -149,7 +169,7 @@ final class TranscriptionCoordinator: ObservableObject {
             pasteService.saveFrontmostApp()
             try audioRecorder.startRecording()
             state = .recording(startTime: .now)
-            NSLog("[Whistype] Recording started")
+            Logger.coordinator.info("Recording started")
         } catch {
             state = .error(message: error.localizedDescription)
             scheduleDismiss(after: Constants.errorDismissDelay)
@@ -163,24 +183,26 @@ final class TranscriptionCoordinator: ObservableObject {
         let duration = Date.now.timeIntervalSince(startTime)
 
         // Skip transcription for very short recordings (accidental taps)
-        guard duration >= 0.5 else {
-            NSLog("[Whistype] Recording too short (%.1fs), discarding", duration)
+        guard duration >= Constants.minimumRecordingDuration else {
+            Logger.coordinator.info("Recording too short (\(duration, format: .fixed(precision: 1))s), discarding")
             state = .idle
             return
         }
 
         state = .transcribing
-        NSLog("[Whistype] Recording stopped, transcribing %d samples (%.1fs)", samples.count, duration)
+        Logger.coordinator.info("Recording stopped, transcribing \(samples.count) samples (\(duration, format: .fixed(precision: 1))s)")
 
-        Task {
+        transcriptionTask = Task {
             do {
                 let text = try await transcriptionService.transcribe(samples: samples)
+                guard !Task.isCancelled else { return }
                 state = .done(text: text)
-                NSLog("[Whistype] Transcription: %@", text)
+                Logger.coordinator.info("Transcription: \(text)")
                 handleTranscriptionResult(text: text, duration: duration)
                 scheduleDismiss(after: Constants.doneDismissDelay)
             } catch {
-                NSLog("[Whistype] Transcription error: %@", error.localizedDescription)
+                guard !Task.isCancelled else { return }
+                Logger.coordinator.error("Transcription error: \(error.localizedDescription)")
                 state = .error(message: error.localizedDescription)
                 scheduleDismiss(after: Constants.errorDismissDelay)
             }
@@ -200,7 +222,7 @@ final class TranscriptionCoordinator: ObservableObject {
 
     private func saveToHistory(text: String, duration: Double) {
         guard let modelContainer else {
-            NSLog("[Whistype] saveToHistory: no modelContainer, skipping")
+            Logger.coordinator.warning("saveToHistory: no modelContainer, skipping")
             return
         }
         let record = TranscriptionRecord(text: text, durationSeconds: duration)
@@ -209,9 +231,9 @@ final class TranscriptionCoordinator: ObservableObject {
         trimHistory(context: context)
         do {
             try context.save()
-            NSLog("[Whistype] Saved transcription to history")
+            Logger.coordinator.info("Saved transcription to history")
         } catch {
-            NSLog("[Whistype] Failed to save history: %@", error.localizedDescription)
+            Logger.coordinator.error("Failed to save history: \(error.localizedDescription)")
         }
     }
 

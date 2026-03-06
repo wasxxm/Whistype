@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import os
 import WhisperKit
 
 final class WhisperTranscriptionService: Transcription {
@@ -13,7 +14,7 @@ final class WhisperTranscriptionService: Transcription {
     private var whisperKit: WhisperKit?
 
     func loadModel(name: String) async throws {
-        NSLog("[Whistype] loadModel started for: %@", name)
+        Logger.transcription.info("WhisperKit loadModel started for: \(name)")
         loadingStatusSubject.send(.downloading(progress: 0))
 
         let config = WhisperKitConfig(
@@ -26,17 +27,17 @@ final class WhisperTranscriptionService: Transcription {
         )
 
         loadingStatusSubject.send(.loading)
-        NSLog("[Whistype] Creating WhisperKit (download + prewarm + load)")
+        Logger.transcription.info("Creating WhisperKit (download + prewarm + load)")
 
         do {
             let kit = try await WhisperKit(config)
             whisperKit = kit
             isModelLoaded = true
             loadingStatusSubject.send(.ready)
-            NSLog("[Whistype] Model ready")
+            Logger.transcription.info("WhisperKit model ready")
         } catch {
             loadingStatusSubject.send(.failed(message: error.localizedDescription))
-            NSLog("[Whistype] Model load failed: %@", error.localizedDescription)
+            Logger.transcription.error("WhisperKit model load failed: \(error.localizedDescription)")
             throw error
         }
     }

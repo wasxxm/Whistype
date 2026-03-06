@@ -33,6 +33,7 @@ targets:
         INFOPLIST_FILE: Info.plist
         CODE_SIGN_ENTITLEMENTS: Whistype.entitlements
         SWIFT_VERSION: "5.9"
+        SWIFT_STRICT_CONCURRENCY: complete
         MACOSX_DEPLOYMENT_TARGET: "14.0"
         ENABLE_HARDENED_RUNTIME: true
         CODE_SIGN_STYLE: Automatic
@@ -50,3 +51,6 @@ targets:
         product: ParakeetASR
     entitlements:
       path: Whistype.entitlements
+      properties:
+        com.apple.security.device.audio-input: true
+        com.apple.security.automation.apple-events: true

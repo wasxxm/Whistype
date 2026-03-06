@@ -17,7 +17,4 @@ final class HotkeyService: HotkeyBinding {
         }
     }
 
-    func unregister() {
-        hotKey = nil
-    }
 }
