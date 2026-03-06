@@ -7,10 +7,9 @@ struct OnboardingView: View {
 
     @State private var currentStep = 0
     @State private var micGranted = false
-    @State private var accessibilityGranted = false
+    @State private var accessibilityPrompted = false
 
-
-    private let totalSteps = 4
+    private let totalSteps = 3
 
     var body: some View {
         VStack(spacing: 0) {
@@ -48,10 +47,8 @@ struct OnboardingView: View {
         case 0:
             welcomeStep
         case 1:
-            microphoneStep
+            permissionsStep
         case 2:
-            accessibilityStep
-        case 3:
             readyStep
         default:
             EmptyView()
@@ -77,59 +74,59 @@ struct OnboardingView: View {
     }
 
     @ViewBuilder
-    private var microphoneStep: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "mic.circle.fill")
+    private var permissionsStep: some View {
+        VStack(spacing: 24) {
+            Image(systemName: "lock.shield.fill")
                 .font(.system(size: 56))
-                .foregroundStyle(.orange)
+                .foregroundStyle(.blue)
 
-            Text("Microphone Access")
+            Text("Permissions")
                 .font(.title2)
                 .fontWeight(.semibold)
 
-            Text("Whistype needs your microphone to capture speech for transcription. Audio never leaves your device.")
+            Text("Whistype needs microphone access to capture speech, and accessibility access to paste transcribed text into any app.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
 
             Button("Grant Access") {
                 Task {
                     micGranted = await permissions.requestMicrophone()
+                    permissions.promptAccessibilityIfNeeded()
+                    accessibilityPrompted = true
                 }
             }
             .buttonStyle(.borderedProminent)
             .disabled(micGranted)
 
-            if micGranted {
-                Label("Microphone access granted", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+            VStack(alignment: .leading, spacing: 10) {
+                permissionRow(
+                    icon: "mic.fill",
+                    color: .orange,
+                    label: "Microphone",
+                    granted: micGranted
+                )
+                permissionRow(
+                    icon: "hand.raised.fill",
+                    color: .purple,
+                    label: "Accessibility",
+                    granted: permissions.accessibilityGranted
+                )
             }
+            .padding(.top, 4)
         }
     }
 
     @ViewBuilder
-    private var accessibilityStep: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "hand.raised.circle.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(.purple)
-
-            Text("Accessibility Access")
-                .font(.title2)
-                .fontWeight(.semibold)
-
-            Text("Optional. Enables auto-paste into the active app after transcription. Without this, text is copied to clipboard only.")
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-
-            Button("Open System Settings") {
-                permissions.openAccessibilitySettings()
-            }
-            .buttonStyle(.borderedProminent)
-
-            if permissions.accessibilityGranted {
-                Label("Accessibility access granted", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-            }
+    private func permissionRow(icon: String, color: Color, label: String, granted: Bool) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .foregroundStyle(color)
+                .frame(width: 20)
+            Text(label)
+                .foregroundStyle(.primary)
+            Spacer()
+            Image(systemName: granted ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(granted ? .green : .secondary)
         }
     }
 
