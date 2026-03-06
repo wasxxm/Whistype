@@ -1,5 +1,7 @@
 # Whistype
 
+**[Website](https://whistype.wazeem.com)** · **[Download](https://github.com/wasxxm/Whistype/releases/latest)** · **[Wiki](https://github.com/wasxxm/Whistype/wiki)**
+
 Free, fast, on-device speech-to-text for macOS. Supports [WhisperKit](https://github.com/argmaxinc/WhisperKit) (CoreML), [Qwen3-ASR](https://github.com/ivan-digital/qwen3-asr-swift) (MLX), and [ParakeetASR](https://github.com/ivan-digital/qwen3-asr-swift) (MLX) engines on Apple Silicon.
 
 Hold **⌥ Space** anywhere to dictate. Release to stop. Text is transcribed locally and pasted into the active app.
