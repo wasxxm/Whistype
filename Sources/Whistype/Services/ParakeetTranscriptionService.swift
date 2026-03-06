@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import os
 import ParakeetASR
 
 final class ParakeetTranscriptionService: Transcription {
@@ -13,7 +14,7 @@ final class ParakeetTranscriptionService: Transcription {
     private var model: ParakeetASRModel?
 
     func loadModel(name: String) async throws {
-        NSLog("[Whistype] Parakeet-TDT loadModel started")
+        Logger.transcription.info("Parakeet-TDT loadModel started")
         loadingStatusSubject.send(.downloading(progress: 0))
 
         do {
@@ -22,16 +23,16 @@ final class ParakeetTranscriptionService: Transcription {
             }
 
             loadingStatusSubject.send(.prewarming)
-            NSLog("[Whistype] Parakeet-TDT warming up CoreML…")
+            Logger.transcription.info("Parakeet-TDT warming up CoreML…")
             try asrModel.warmUp()
 
             model = asrModel
             isModelLoaded = true
             loadingStatusSubject.send(.ready)
-            NSLog("[Whistype] Parakeet-TDT model ready")
+            Logger.transcription.info("Parakeet-TDT model ready")
         } catch {
             loadingStatusSubject.send(.failed(message: error.localizedDescription))
-            NSLog("[Whistype] Parakeet-TDT model load failed: %@", error.localizedDescription)
+            Logger.transcription.error("Parakeet-TDT model load failed: \(error.localizedDescription)")
             throw error
         }
     }
@@ -41,7 +42,7 @@ final class ParakeetTranscriptionService: Transcription {
             throw TranscriptionError.modelNotLoaded
         }
 
-        let text = try model.transcribeAudio(samples, sampleRate: 16000)
+        let text = try model.transcribeAudio(samples, sampleRate: Int(Constants.audioSampleRate))
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !trimmed.isEmpty else {

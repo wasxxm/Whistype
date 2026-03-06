@@ -1,4 +1,5 @@
 import AppKit
+import os
 import SwiftData
 import SwiftUI
 
@@ -14,13 +15,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         do {
             modelContainer = try ModelContainer(for: schema, configurations: [config])
         } catch {
-            fatalError("Failed to create ModelContainer: \(error)")
+            Logger.app.error("Failed to create ModelContainer: \(error.localizedDescription)")
+            let alert = NSAlert()
+            alert.messageText = "Failed to Initialize Database"
+            alert.informativeText = error.localizedDescription
+            alert.alertStyle = .critical
+            alert.runModal()
+            NSApp.terminate(nil)
+            // ModelContainer is non-optional, but terminate exits the process
+            modelContainer = try! ModelContainer(for: schema, configurations: [config])
         }
         super.init()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSLog("[Whistype] applicationDidFinishLaunching")
+        Logger.app.info("applicationDidFinishLaunching")
         NSApp.setActivationPolicy(.accessory)
 
         container.coordinator.setupModelContainer(modelContainer)
@@ -32,14 +41,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             DispatchQueue.main.async {
                 NSApp.activate(ignoringOtherApps: true)
                 if let window = NSApp.windows.first(where: {
-                    $0.title.contains("Welcome")
+                    $0.identifier?.rawValue == "onboarding"
+                        || $0.title.contains("Welcome")
                 }) {
                     window.makeKeyAndOrderFront(nil)
                 }
             }
         }
 
-        NSLog("[Whistype] Starting model load")
+        Logger.app.info("Starting model load")
         Task {
             await container.coordinator.loadModel()
         }

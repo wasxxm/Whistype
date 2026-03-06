@@ -1,6 +1,7 @@
 import AppKit
 import ApplicationServices
 import Foundation
+import os
 
 final class PasteService: OutputPasting {
     /// The app that was frontmost when recording started.
@@ -18,15 +19,12 @@ final class PasteService: OutputPasting {
 
     func saveFrontmostApp() {
         savedFrontmostApp = NSWorkspace.shared.frontmostApplication
-        NSLog(
-            "[Whistype] Saved frontmost app: %@",
-            savedFrontmostApp?.localizedName ?? "nil"
-        )
+        Logger.paste.debug("Saved frontmost app: \(self.savedFrontmostApp?.localizedName ?? "nil")")
     }
 
     func paste(text: String) {
         if !AXIsProcessTrusted() {
-            NSLog("[Whistype] AX not trusted — prompting and copying to clipboard")
+            Logger.paste.info("AX not trusted — prompting and copying to clipboard")
             copyToClipboard(text: text)
             let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
             AXIsProcessTrustedWithOptions(options)
@@ -36,19 +34,19 @@ final class PasteService: OutputPasting {
 
         // Re-activate the app that was in focus before recording
         if let app = savedFrontmostApp {
-            NSLog("[Whistype] Re-activating: %@", app.localizedName ?? "unknown")
+            Logger.paste.debug("Re-activating: \(app.localizedName ?? "unknown")")
             app.activate()
         }
 
         // Strategy 1: Accessibility API — insert text directly at cursor
         if insertViaAccessibility(text: text) {
-            NSLog("[Whistype] Text inserted via Accessibility API")
+            Logger.paste.info("Text inserted via Accessibility API")
             savedFrontmostApp = nil
             return
         }
 
         // Strategy 2: Clipboard + simulated Cmd+V
-        NSLog("[Whistype] AX insert failed, falling back to Cmd+V")
+        Logger.paste.info("AX insert failed, falling back to Cmd+V")
         copyToClipboard(text: text)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
             self?.simulateCommandV()
@@ -60,7 +58,7 @@ final class PasteService: OutputPasting {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
-        NSLog("[Whistype] Text copied to clipboard (%d chars)", text.count)
+        Logger.paste.debug("Text copied to clipboard (\(text.count) chars)")
     }
 
     // MARK: - Strategy 1: Accessibility API
@@ -75,11 +73,11 @@ final class PasteService: OutputPasting {
             systemWide, kAXFocusedUIElementAttribute as CFString, &focusedRef
         )
         guard focusErr == .success, let focused = focusedRef else {
-            NSLog("[Whistype] AX: No focused element (err %d)", focusErr.rawValue)
+            Logger.paste.debug("AX: No focused element (err \(focusErr.rawValue))")
             return false
         }
 
-        // CFTypeRef is toll-free bridged to AXUIElement
+        // CFTypeRef is toll-free bridged to AXUIElement (cast always succeeds)
         let element = focused as! AXUIElement
 
         var roleRef: CFTypeRef?
@@ -87,13 +85,13 @@ final class PasteService: OutputPasting {
             element, kAXRoleAttribute as CFString, &roleRef
         )
         guard roleErr == .success, let role = roleRef as? String else {
-            NSLog("[Whistype] AX: Cannot read element role")
+            Logger.paste.debug("AX: Cannot read element role")
             return false
         }
-        NSLog("[Whistype] AX: Focused element role = %@", role)
+        Logger.paste.debug("AX: Focused element role = \(role)")
 
         guard Self.textRoles.contains(role) else {
-            NSLog("[Whistype] AX: Not a text input role (%@)", role)
+            Logger.paste.debug("AX: Not a text input role (\(role))")
             return false
         }
 
@@ -104,7 +102,7 @@ final class PasteService: OutputPasting {
             element, kAXSelectedTextAttribute as CFString, text as CFTypeRef
         )
         guard setErr == .success else {
-            NSLog("[Whistype] AX: Set selected text failed (err %d)", setErr.rawValue)
+            Logger.paste.debug("AX: Set selected text failed (err \(setErr.rawValue))")
             return false
         }
 
@@ -112,7 +110,7 @@ final class PasteService: OutputPasting {
         if let before = valueBefore {
             let after = readAXValue(element)
             if before == after {
-                NSLog("[Whistype] AX: Value unchanged — app ignores AX insertion")
+                Logger.paste.debug("AX: Value unchanged — app ignores AX insertion")
                 return false
             }
         }
@@ -138,7 +136,7 @@ final class PasteService: OutputPasting {
         guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: true),
               let keyUp = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: false)
         else {
-            NSLog("[Whistype] CGEvent creation failed, trying AppleScript")
+            Logger.paste.error("CGEvent creation failed, trying AppleScript")
             simulateAppleScriptPaste()
             return
         }
@@ -149,16 +147,16 @@ final class PasteService: OutputPasting {
         keyDown.post(tap: .cghidEventTap)
         keyUp.post(tap: .cghidEventTap)
 
-        NSLog("[Whistype] CGEvent Cmd+V posted via cghidEventTap")
+        Logger.paste.debug("CGEvent Cmd+V posted via cghidEventTap")
     }
 
     private func simulateAppleScriptPaste() {
         var error: NSDictionary?
         cachedPasteScript?.executeAndReturnError(&error)
         if let error {
-            NSLog("[Whistype] AppleScript paste error: %@", error)
+            Logger.paste.error("AppleScript paste error: \(error)")
         } else {
-            NSLog("[Whistype] AppleScript paste executed")
+            Logger.paste.debug("AppleScript paste executed")
         }
     }
 }

@@ -7,7 +7,7 @@ enum TranscriptionError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .modelNotLoaded:
-            return "Whisper model is not loaded."
+            return "Speech model is not loaded."
         case .emptyResult:
             return "No speech detected in audio."
         }

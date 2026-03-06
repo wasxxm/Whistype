@@ -38,7 +38,7 @@ struct AboutTab: View {
 
             Spacer()
 
-            Link(destination: URL(string: "https://github.com/InnoWazi/Whistype")!) {
+            Link(destination: URL(string: "https://github.com/wasxxm/Whistype")!) {
                 HStack(spacing: 5) {
                     Image(systemName: "arrow.up.right.square")
                         .font(.caption)

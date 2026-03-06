@@ -67,6 +67,12 @@ struct MenuBarView: View {
                 .foregroundStyle(.red)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
+        } else if !coordinator.isModelLoaded {
+            Text("Model loading...")
+                .font(.caption)
+                .foregroundStyle(.orange)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
         } else {
             Text("Hold ⌥ Space to record")
                 .font(.caption)

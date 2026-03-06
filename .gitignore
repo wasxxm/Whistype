@@ -36,3 +36,7 @@ Packages/
 *.swo
 *~
 xcuserdata/
+
+# Project
+CLAUDE.md
+*.dmg

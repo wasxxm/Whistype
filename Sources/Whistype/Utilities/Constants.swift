@@ -2,9 +2,9 @@ import Foundation
 
 enum Constants {
     static let appName = "Whistype"
-    static let defaultEngine = "whisperkit"
+    static let defaultEngine = EngineID.whisperKit
     static let defaultModel = "large-v3_turbo"
-    static let defaultQwen3Model = "parakeet-tdt"
+    static let defaultQwen3Model = EngineID.parakeet
     static let maxHistoryCount = 50
     static let capsuleWidth: CGFloat = 300
     static let capsuleHeight: CGFloat = 52
@@ -13,6 +13,13 @@ enum Constants {
     static let doneDismissDelay: TimeInterval = 1.5
     static let errorDismissDelay: TimeInterval = 2.0
     static let audioSampleRate: Double = 16000
+    static let minimumRecordingDuration: TimeInterval = 0.5
+
+    enum EngineID {
+        static let whisperKit = "whisperkit"
+        static let qwen3 = "qwen3-asr"
+        static let parakeet = "parakeet-tdt"
+    }
 
     enum Keys {
         static let selectedEngine = "selectedEngine"

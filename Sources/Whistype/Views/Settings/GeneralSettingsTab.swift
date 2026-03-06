@@ -9,13 +9,13 @@ struct GeneralSettingsTab: View {
     @AppStorage(Constants.Keys.launchAtLogin) private var launchAtLogin = false
 
     private let availableEngines = [
-        ("whisperkit", "WhisperKit (CoreML)"),
-        ("qwen3-asr", "Qwen3-ASR"),
+        (Constants.EngineID.whisperKit, "WhisperKit (CoreML)"),
+        (Constants.EngineID.qwen3, "Qwen3-ASR"),
     ]
 
     private let availableQwen3Models = [
-        ("parakeet-tdt", "Parakeet TDT 0.6B (CoreML)"),
-        ("qwen3-asr", "Qwen3-ASR 0.6B (MLX)"),
+        (Constants.EngineID.parakeet, "Parakeet TDT 0.6B (CoreML)"),
+        (Constants.EngineID.qwen3, "Qwen3-ASR 0.6B (MLX)"),
     ]
 
     private let availableModels = [
@@ -36,7 +36,7 @@ struct GeneralSettingsTab: View {
                 }
                 .pickerStyle(.menu)
 
-                if selectedEngine == "whisperkit" {
+                if selectedEngine == Constants.EngineID.whisperKit {
                     Picker("Model", selection: $selectedModel) {
                         ForEach(availableModels, id: \.self) { model in
                             Text(model).tag(model)

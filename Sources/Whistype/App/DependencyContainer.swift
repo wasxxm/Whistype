@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import os
 
 @MainActor
 final class DependencyContainer {
@@ -57,8 +58,8 @@ final class DependencyContainer {
         self.activeQwen3Model = qwen3Model
 
         let initialService: Transcription
-        if engine == "qwen3-asr" {
-            if qwen3Model == "parakeet-tdt" {
+        if engine == Constants.EngineID.qwen3 {
+            if qwen3Model == Constants.EngineID.parakeet {
                 let service = ParakeetTranscriptionService()
                 _parakeetService = service
                 initialService = service
@@ -86,7 +87,7 @@ final class DependencyContainer {
     }
 
     private func resolveQwen3FamilyService() -> Transcription {
-        if activeQwen3Model == "parakeet-tdt" {
+        if activeQwen3Model == Constants.EngineID.parakeet {
             return parakeetService
         }
         return qwen3Service
@@ -97,14 +98,15 @@ final class DependencyContainer {
             .publisher(for: \.selectedEngine)
             .removeDuplicates()
             .dropFirst()
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] newEngine in
                 guard let self else { return }
                 let engine = newEngine ?? Constants.defaultEngine
                 guard engine != self.activeEngine else { return }
                 self.activeEngine = engine
-                let newService: Transcription = engine == "qwen3-asr"
+                let newService: Transcription = engine == Constants.EngineID.qwen3
                     ? self.resolveQwen3FamilyService() : self.whisperService
-                NSLog("[Whistype] Engine changed to: %@", engine)
+                Logger.app.info("Engine changed to: \(engine)")
                 Task {
                     await self.coordinator.switchEngine(to: newService)
                 }
@@ -116,14 +118,15 @@ final class DependencyContainer {
             .publisher(for: \.selectedQwen3Model)
             .removeDuplicates()
             .dropFirst()
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] newModel in
                 guard let self else { return }
                 let model = newModel ?? Constants.defaultQwen3Model
                 guard model != self.activeQwen3Model else { return }
                 self.activeQwen3Model = model
-                guard self.activeEngine == "qwen3-asr" else { return }
+                guard self.activeEngine == Constants.EngineID.qwen3 else { return }
                 let newService = self.resolveQwen3FamilyService()
-                NSLog("[Whistype] Qwen3 sub-model changed to: %@", model)
+                Logger.app.info("Qwen3 sub-model changed to: \(model)")
                 Task {
                     await self.coordinator.switchEngine(to: newService)
                 }
