@@ -18,8 +18,9 @@ final class Qwen3TranscriptionService: Transcription {
         Logger.transcription.info("Qwen3-ASR loadModel started")
         loadingStatusSubject.send(.downloading(progress: 0))
 
-        // Allow MLX to reuse GPU buffers between inference runs
-        Memory.cacheLimit = 256 * 1024 * 1024
+        // 512 MB lets MLX reuse GPU buffers across inference runs without
+        // thrashing on longer recordings (up from the previous 256 MB limit).
+        Memory.cacheLimit = 512 * 1024 * 1024
 
         do {
             let asrModel = try await Qwen3ASRModel.fromPretrained { [weak self] progress, _ in

@@ -17,8 +17,17 @@ final class WhisperTranscriptionService: Transcription {
         Logger.transcription.info("WhisperKit loadModel started for: \(name)")
         loadingStatusSubject.send(.downloading(progress: 0))
 
+        // Route both encoder and decoder through the Apple Neural Engine explicitly.
+        // On Apple Silicon this is the default, but setting it explicitly makes the
+        // behaviour deterministic across future WhisperKit updates.
+        let computeOptions = ModelComputeOptions(
+            audioEncoderCompute: .cpuAndNeuralEngine,
+            textDecoderCompute: .cpuAndNeuralEngine
+        )
+
         let config = WhisperKitConfig(
             model: name,
+            computeOptions: computeOptions,
             verbose: false,
             logLevel: .error,
             prewarm: true,
@@ -57,7 +66,10 @@ final class WhisperTranscriptionService: Transcription {
             skipSpecialTokens: true,
             withoutTimestamps: true,
             suppressBlank: true,
-            concurrentWorkerCount: 4
+            concurrentWorkerCount: 4,
+            // VAD chunking splits audio at silence boundaries so the decoder
+            // never runs over silent frames — measurably faster for short clips.
+            chunkingStrategy: .vad
         )
 
         let result = try await whisperKit.transcribe(

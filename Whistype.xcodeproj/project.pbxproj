@@ -587,7 +587,7 @@
 			repositoryURL = "https://github.com/ivan-digital/qwen3-asr-swift";
 			requirement = {
 				kind = revision;
-				revision = bdc8a50b318969269be6b17fbab95b01d790a928;
+				revision = e85f7cd885b26830b9714570a57e92e60ba05271;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
