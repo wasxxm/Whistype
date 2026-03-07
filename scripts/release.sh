@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build, sign, package, notarize, and staple Whistype for distribution
+# Build, sign, package, notarize, staple, and upload Whistype for distribution
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,8 +14,18 @@ EXPORT_DIR="${BUILD_DIR}/export"
 DMG_NAME="${APP_NAME}-${VERSION}.dmg"
 DMG_PATH="${PROJECT_DIR}/${DMG_NAME}"
 KEYCHAIN_PROFILE="Whistype-Notarize"
+GITHUB_TAG="v${VERSION}"
+
+# Prefer Apple's HTTP timestamp endpoint; fall back to DigiCert if unreachable.
+if curl -s --max-time 5 http://timestamp.apple.com/ts01 >/dev/null 2>&1; then
+    TIMESTAMP_URL="http://timestamp.apple.com/ts01"
+else
+    echo "Apple timestamp server unreachable, using DigiCert"
+    TIMESTAMP_URL="http://timestamp.digicert.com"
+fi
 
 echo "=== Whistype Release Build v${VERSION} ==="
+echo "Timestamp server: ${TIMESTAMP_URL}"
 echo ""
 
 # Step 1: Clean build directory
@@ -37,6 +47,7 @@ xcodebuild archive \
     CODE_SIGN_STYLE=Manual \
     DEVELOPMENT_TEAM="${TEAM_ID}" \
     ENABLE_HARDENED_RUNTIME=YES \
+    OTHER_CODE_SIGN_FLAGS="--timestamp=${TIMESTAMP_URL}" \
     -quiet
 
 echo "Archive created at: ${ARCHIVE_PATH}"
@@ -90,27 +101,33 @@ echo "DMG created: ${DMG_PATH}"
 # Step 6: Sign the DMG (xcodebuild does not sign DMGs)
 echo "--- Step 6: Signing DMG ---"
 codesign --force --sign "${IDENTITY}: Waseem Khan (${TEAM_ID})" \
-    --timestamp \
+    --timestamp="${TIMESTAMP_URL}" \
     "${DMG_PATH}"
 echo "DMG signed"
 
-# Step 7: Submit for notarization
-echo "--- Step 7: Submitting for notarization ---"
-SUBMIT_OUTPUT=$(xcrun notarytool submit "${DMG_PATH}" \
-    --keychain-profile "${KEYCHAIN_PROFILE}" 2>&1)
-echo "${SUBMIT_OUTPUT}"
+# Step 7: Submit for notarization and wait for result
+echo "--- Step 7: Notarizing (this may take a few minutes) ---"
+xcrun notarytool submit "${DMG_PATH}" \
+    --keychain-profile "${KEYCHAIN_PROFILE}" \
+    --wait 2>&1
 
-SUBMISSION_ID=$(echo "${SUBMIT_OUTPUT}" | grep "id:" | head -1 | awk '{print $2}')
+# Step 8: Staple the notarization ticket
+echo "--- Step 8: Stapling ---"
+xcrun stapler staple "${DMG_PATH}"
+
+# Step 9: Verify Gatekeeper acceptance
+echo "--- Step 9: Verifying Gatekeeper ---"
+spctl --assess --type open --context context:primary-signature --verbose "${DMG_PATH}" 2>&1
+
+# Step 10: Upload to GitHub release (creates tag/release if missing)
+echo "--- Step 10: Uploading to GitHub release ${GITHUB_TAG} ---"
+if gh release view "${GITHUB_TAG}" >/dev/null 2>&1; then
+    gh release upload "${GITHUB_TAG}" "${DMG_PATH}" --clobber
+else
+    gh release create "${GITHUB_TAG}" "${DMG_PATH}" \
+        --title "${APP_NAME} ${VERSION}" \
+        --notes "Release ${VERSION}"
+fi
+
 echo ""
-echo "Submission ID: ${SUBMISSION_ID}"
-echo ""
-echo "Notarization is processing. Check status with:"
-echo "  xcrun notarytool info ${SUBMISSION_ID} --keychain-profile ${KEYCHAIN_PROFILE}"
-echo ""
-echo "Once accepted, staple with:"
-echo "  xcrun stapler staple ${DMG_PATH}"
-echo ""
-echo "Then verify with:"
-echo "  xcrun stapler validate ${DMG_PATH}"
-echo ""
-echo "=== Build & submit complete: ${DMG_PATH} ==="
+echo "=== Done: ${DMG_NAME} notarized, stapled, and uploaded to ${GITHUB_TAG} ==="
