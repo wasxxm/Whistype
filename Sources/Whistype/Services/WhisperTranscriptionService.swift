@@ -56,6 +56,8 @@ final class WhisperTranscriptionService: Transcription {
             throw TranscriptionError.modelNotLoaded
         }
 
+        // No chunkingStrategy: VAD chunking is designed for long recordings (30s+).
+        // For push-to-talk clips (2–15s of pure speech), the VAD pass is pure overhead.
         let options = DecodingOptions(
             task: .transcribe,
             language: "en",
@@ -66,10 +68,7 @@ final class WhisperTranscriptionService: Transcription {
             skipSpecialTokens: true,
             withoutTimestamps: true,
             suppressBlank: true,
-            concurrentWorkerCount: 4,
-            // VAD chunking splits audio at silence boundaries so the decoder
-            // never runs over silent frames — measurably faster for short clips.
-            chunkingStrategy: .vad
+            concurrentWorkerCount: 4
         )
 
         let result = try await whisperKit.transcribe(
