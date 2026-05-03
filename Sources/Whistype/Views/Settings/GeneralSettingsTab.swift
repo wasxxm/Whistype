@@ -7,6 +7,7 @@ struct GeneralSettingsTab: View {
     @AppStorage(Constants.Keys.autoPasteEnabled) private var autoPasteEnabled = true
     @AppStorage(Constants.Keys.showCapsule) private var showCapsule = true
     @AppStorage(Constants.Keys.launchAtLogin) private var launchAtLogin = false
+    @AppStorage(Constants.Keys.restoreClipboardAfterPaste) private var restoreClipboardAfterPaste = true
 
     private let availableEngines = [
         (Constants.EngineID.whisperKit, "WhisperKit (CoreML)"),
@@ -65,6 +66,8 @@ struct GeneralSettingsTab: View {
 
             Section {
                 Toggle("Auto-paste transcription", isOn: $autoPasteEnabled)
+                Toggle("Restore clipboard after paste", isOn: $restoreClipboardAfterPaste)
+                    .disabled(!autoPasteEnabled)
                 Toggle("Show floating capsule", isOn: $showCapsule)
             } header: {
                 Label("Behavior", systemImage: "hand.tap")

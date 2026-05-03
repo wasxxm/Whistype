@@ -49,11 +49,45 @@ final class PasteService: OutputPasting {
 
         // Strategy 2: Clipboard + simulated Cmd+V
         Logger.paste.info("AX insert failed, falling back to Cmd+V")
+        let restoreClipboard = UserDefaults.standard
+            .bool(forKey: Constants.Keys.restoreClipboardAfterPaste)
+        let snapshot = restoreClipboard ? captureClipboardSnapshot() : nil
         copyToClipboard(text: text)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
             self?.simulateCommandV()
             self?.savedFrontmostApp = nil
+            // Wait for the receiving app to finish reading the pasteboard
+            // before we put the user's prior contents back.
+            if let snapshot {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                    self?.restoreClipboardSnapshot(snapshot)
+                }
+            }
         }
+    }
+
+    // MARK: - Clipboard preservation
+
+    /// Captures every type currently on the general pasteboard so we can put
+    /// it back after the Cmd+V fallback clobbered it with the transcription.
+    /// SuperWhisper does the same — the user's clipboard appears untouched
+    /// after dictation.
+    private func captureClipboardSnapshot() -> [(NSPasteboard.PasteboardType, Data)] {
+        let pb = NSPasteboard.general
+        guard let types = pb.types else { return [] }
+        return types.compactMap { type in
+            guard let data = pb.data(forType: type) else { return nil }
+            return (type, data)
+        }
+    }
+
+    private func restoreClipboardSnapshot(_ snapshot: [(NSPasteboard.PasteboardType, Data)]) {
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        for (type, data) in snapshot {
+            pb.setData(data, forType: type)
+        }
+        Logger.paste.debug("Clipboard restored to pre-paste state (\(snapshot.count) types)")
     }
 
     func copyToClipboard(text: String) {

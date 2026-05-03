@@ -28,7 +28,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.innowazi.Whistype
-        MARKETING_VERSION: "1.0.2"
+        MARKETING_VERSION: "1.0.3"
         CURRENT_PROJECT_VERSION: "1"
         INFOPLIST_FILE: Info.plist
         CODE_SIGN_ENTITLEMENTS: Whistype.entitlements
@@ -36,9 +36,15 @@ targets:
         SWIFT_STRICT_CONCURRENCY: complete
         MACOSX_DEPLOYMENT_TARGET: "14.0"
         ENABLE_HARDENED_RUNTIME: true
-        CODE_SIGN_STYLE: Automatic
+        # Sign every build (Debug and Release) with the same Developer ID
+        # Application cert as the shipping DMG. macOS keys Accessibility
+        # permissions to the cert's designated requirement, so aligning
+        # signing identities makes one AX grant carry across local rebuilds
+        # AND released versions, instead of expiring on every cert rotation.
+        CODE_SIGN_STYLE: Manual
         DEVELOPMENT_TEAM: 3426FSU868
-        CODE_SIGN_IDENTITY: "Apple Development"
+        CODE_SIGN_IDENTITY: "Developer ID Application"
+        OTHER_CODE_SIGN_FLAGS: "--timestamp=none"
         LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     dependencies:

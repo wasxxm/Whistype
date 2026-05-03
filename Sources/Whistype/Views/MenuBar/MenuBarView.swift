@@ -1,8 +1,10 @@
+import AppKit
 import SwiftUI
 
 struct MenuBarView: View {
     @ObservedObject var coordinator: TranscriptionCoordinator
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -82,6 +84,10 @@ struct MenuBarView: View {
         }
 
         Button {
+            // .accessory activation policy means openWindow alone won't bring
+            // the app forward; the History window opens behind whatever the
+            // user is currently in. Activate explicitly first.
+            NSApp.activate(ignoringOtherApps: true)
             openWindow(id: "history")
         } label: {
             Label("History", systemImage: "clock.arrow.circlepath")
@@ -90,7 +96,13 @@ struct MenuBarView: View {
 
     @ViewBuilder
     private var appSection: some View {
-        SettingsLink {
+        Button {
+            // Same .accessory issue as History — SettingsLink opens the window
+            // but doesn't bring the app to the front. Use openSettings + an
+            // explicit activate so the window lands on top.
+            NSApp.activate(ignoringOtherApps: true)
+            openSettings()
+        } label: {
             Label("Settings...", systemImage: "gear")
         }
         .keyboardShortcut(",", modifiers: .command)

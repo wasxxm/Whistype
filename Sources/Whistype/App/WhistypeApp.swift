@@ -44,6 +44,7 @@ struct WhistypeApp: App {
             Constants.Keys.launchAtLogin: false,
             Constants.Keys.hasCompletedOnboarding: false,
             Constants.Keys.hasPromptedAccessibility: false,
+            Constants.Keys.restoreClipboardAfterPaste: true,
         ])
         Self.migrateLegacyWhisperModelIfNeeded()
     }

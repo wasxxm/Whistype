@@ -50,5 +50,6 @@ enum Constants {
         static let selectedQwen3Model = "selectedQwen3Model"
         static let hasPromptedAccessibility = "hasPromptedAccessibility"
         static let didMigrateLegacyWhisperModel = "didMigrateLegacyWhisperModelV1"
+        static let restoreClipboardAfterPaste = "restoreClipboardAfterPaste"
     }
 }
