@@ -48,14 +48,27 @@ final class TranscriptionCoordinator: ObservableObject {
     }
 
     func loadModel() async {
+        // Capture the service we're loading against so we can detect a stale load
+        // when the user switches engines mid-download. Without this guard, an old
+        // service finishing AFTER `switchEngine` swapped `transcriptionService` will
+        // incorrectly flip `isModelLoaded = true` for the new (still-loading) engine.
+        let serviceAtStart = transcriptionService
         let modelName = UserDefaults.standard.string(forKey: Constants.Keys.selectedModel)
             ?? Constants.defaultModel
         Logger.coordinator.info("Loading model: \(modelName)")
         do {
             try await transcriptionService.loadModel(name: modelName)
+            guard transcriptionService === serviceAtStart else {
+                Logger.coordinator.info("Stale model load (engine switched), discarding result")
+                return
+            }
             isModelLoaded = true
             Logger.coordinator.info("Model loaded, ready to transcribe")
         } catch {
+            guard transcriptionService === serviceAtStart else {
+                Logger.coordinator.info("Stale model load error (engine switched), discarding")
+                return
+            }
             Logger.coordinator.error("Model load error: \(error.localizedDescription)")
             state = .error(message: "Failed to load model: \(error.localizedDescription)")
             scheduleDismiss(after: Constants.errorDismissDelay)

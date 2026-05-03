@@ -24,10 +24,12 @@ final class PasteService: OutputPasting {
 
     func paste(text: String) {
         if !AXIsProcessTrusted() {
-            Logger.paste.info("AX not trusted — prompting and copying to clipboard")
+            // PermissionsManager already prompts for accessibility once at first
+            // launch (see Constants.Keys.hasPromptedAccessibility). Re-triggering
+            // the system prompt on every paste is noisy; just fall back to
+            // clipboard-only and let the user grant access at their own pace.
+            Logger.paste.info("AX not trusted — falling back to clipboard-only")
             copyToClipboard(text: text)
-            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue(): true] as CFDictionary
-            AXIsProcessTrustedWithOptions(options)
             savedFrontmostApp = nil
             return
         }

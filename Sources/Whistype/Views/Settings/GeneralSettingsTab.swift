@@ -18,12 +18,20 @@ struct GeneralSettingsTab: View {
         (Constants.EngineID.qwen3, "Qwen3-ASR 0.6B (MLX)"),
     ]
 
-    private let availableModels = [
-        "large-v3_turbo",
-        "large-v3",
-        "distil-large-v3",
-        "base.en",
-        "small.en",
+    /// Models in descending order of accuracy. The first entry, `auto`, resolves
+    /// at load time to WhisperKit's chip-aware default — the OpenAI Whisper Large V3
+    /// Turbo (Sept 2024 release with the 4-layer decoder) on M2/M3/M4, or its 4-bit
+    /// compressed variant on M1. The remaining entries let power users override.
+    private let availableModels: [(id: String, label: String)] = [
+        (Constants.WhisperModelID.auto, "Recommended for this Mac"),
+        (Constants.WhisperModelID.largeV3TurboV20240930, "Whisper Large V3 Turbo - balanced"),
+        (Constants.WhisperModelID.largeV3TurboV20240930Streaming, "Whisper Large V3 Turbo - streaming"),
+        (Constants.WhisperModelID.largeV3TurboV20240930Compressed, "Whisper Large V3 Turbo - 4-bit (compact)"),
+        (Constants.WhisperModelID.distilLargeV3Turbo, "Distil Whisper Large V3 Turbo - fastest large"),
+        (Constants.WhisperModelID.distilLargeV3TurboCompressed, "Distil Whisper Large V3 Turbo - 4-bit"),
+        (Constants.WhisperModelID.largeV3, "Whisper Large V3 - highest accuracy"),
+        (Constants.WhisperModelID.smallEn, "Whisper Small (English) - lightweight"),
+        (Constants.WhisperModelID.baseEn, "Whisper Base (English) - smallest"),
     ]
 
     var body: some View {
@@ -38,8 +46,8 @@ struct GeneralSettingsTab: View {
 
                 if selectedEngine == Constants.EngineID.whisperKit {
                     Picker("Model", selection: $selectedModel) {
-                        ForEach(availableModels, id: \.self) { model in
-                            Text(model).tag(model)
+                        ForEach(availableModels, id: \.id) { model in
+                            Text(model.label).tag(model.id)
                         }
                     }
                     .pickerStyle(.menu)
