@@ -79,17 +79,30 @@ if codesign -d --entitlements - "${EXPORTED_APP}" 2>&1 | grep -q "get-task-allow
 fi
 echo "No get-task-allow entitlement (good)"
 
-# Step 5: Create DMG
+# Step 5: Create DMG with custom volume icon
 echo "--- Step 5: Creating DMG ---"
 rm -f "${DMG_PATH}"
 
 DMG_TEMP="${BUILD_DIR}/dmg-staging"
+rm -rf "${DMG_TEMP}"
 mkdir -p "${DMG_TEMP}"
 cp -R "${EXPORTED_APP}" "${DMG_TEMP}/"
 ln -s /Applications "${DMG_TEMP}/Applications"
 
+# Verify icon is embedded in the exported app
+ICNS="${EXPORTED_APP}/Contents/Resources/AppIcon.icns"
+if [ ! -f "${ICNS}" ]; then
+    echo "ERROR: AppIcon.icns missing from bundle — icon will not show in Finder"
+    exit 1
+fi
+echo "Icon embedded: $(du -h "${ICNS}" | cut -f1)"
+
+# 5a: Copy volume icon into staging (shown when DMG is mounted in Finder)
+cp "${ICNS}" "${DMG_TEMP}/.VolumeIcon.icns"
+
+# 5b: Create compressed DMG
 hdiutil create \
-    -volname "${APP_NAME}" \
+    -volname "Install ${APP_NAME}" \
     -srcfolder "${DMG_TEMP}" \
     -ov \
     -format UDZO \

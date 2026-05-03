@@ -14,6 +14,7 @@
 		2E726427C97F6227455CB762 /* ParakeetASR in Frameworks */ = {isa = PBXBuildFile; productRef = 39F0821EBF370506ABB1A8FA /* ParakeetASR */; };
 		3030D1AC9CAFC11536F16B22 /* GeneralSettingsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F810BCB6A9ECA5350B4EEA /* GeneralSettingsTab.swift */; };
 		3372BAC532CF6071DD4AEFD8 /* TranscriptionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB78D74B00CCB025C8E8F3E6 /* TranscriptionState.swift */; };
+		3915F1A83D232748C2B71455 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8E658AE0ADEF46A33120D7E8 /* Assets.xcassets */; };
 		45485A6F4995F03A864D1C32 /* TranscriptionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = E073D87000F51C6229065536 /* TranscriptionRecord.swift */; };
 		4E9010593D283C47E08E9ECA /* VisualEffectBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A671106A431D2AE61A9498B /* VisualEffectBackground.swift */; };
 		526096DEA7F7F61193E6570D /* Transcription.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46F88538D7EBD55E940729E8 /* Transcription.swift */; };
@@ -64,6 +65,7 @@
 		7C6850C5BB44A95C70E3743E /* AudioRecorderError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecorderError.swift; sourceTree = "<group>"; };
 		89A93F5CE9E333EADE564EAC /* KeyCapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyCapView.swift; sourceTree = "<group>"; };
 		8A671106A431D2AE61A9498B /* VisualEffectBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectBackground.swift; sourceTree = "<group>"; };
+		8E658AE0ADEF46A33120D7E8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		966140FD49A0B52BDD03A1E7 /* FloatingCapsuleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingCapsuleView.swift; sourceTree = "<group>"; };
 		9D9605856C8FB42A5389062E /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A1BB93FB3816E78A94BB9657 /* AudioLevelIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioLevelIndicator.swift; sourceTree = "<group>"; };
@@ -181,6 +183,7 @@
 		6D3EFDABFECBAAE8D7C53EE3 = {
 			isa = PBXGroup;
 			children = (
+				9394F3916E60C2340C03C9B4 /* Resources */,
 				B0FD4132C6E9A2FE62672FAA /* Whistype */,
 				4F8CC832223CB3F42367A45B /* Products */,
 			);
@@ -224,6 +227,14 @@
 				B0594700680E88276AFC72EF /* MenuBarView.swift */,
 			);
 			path = MenuBar;
+			sourceTree = "<group>";
+		};
+		9394F3916E60C2340C03C9B4 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8E658AE0ADEF46A33120D7E8 /* Assets.xcassets */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		A215BA87C562D30BA6BFEE73 /* Onboarding */ = {
@@ -278,6 +289,7 @@
 			buildConfigurationList = 4DAFFAFAE3A8B68ADDBA0F68 /* Build configuration list for PBXNativeTarget "Whistype" */;
 			buildPhases = (
 				693F2CCB6AA38AA3A1F01021 /* Sources */,
+				A73DD9706A183B67DA8C62A8 /* Resources */,
 				1E10905E152566D847B4E8A0 /* Frameworks */,
 			);
 			buildRules = (
@@ -333,6 +345,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A73DD9706A183B67DA8C62A8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3915F1A83D232748C2B71455 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		693F2CCB6AA38AA3A1F01021 /* Sources */ = {
@@ -449,7 +472,7 @@
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.innowazi.Whistype;
 				SDKROOT = macosx;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -471,7 +494,7 @@
 				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.innowazi.Whistype;
 				SDKROOT = macosx;
 				SWIFT_STRICT_CONCURRENCY = complete;
