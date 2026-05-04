@@ -7,6 +7,22 @@ final class PasteService: OutputPasting {
     /// The app that was frontmost when recording started.
     private var savedFrontmostApp: NSRunningApplication?
 
+    /// Wait this long after posting Cmd+V before reverting the clipboard.
+    /// Native Cocoa apps process Cmd+V in <50 ms, Electron and browsers
+    /// usually 100-300 ms. 1.0 s is well above the slow-app threshold while
+    /// keeping the transcription visible on clipboard only briefly.
+    /// 0.3 s (the original 1.0.3 value) was too short and let slow apps read
+    /// the restored prior contents instead of the transcription.
+    private static let restoreDelay: TimeInterval = 1.0
+
+    /// Pending clipboard restore from the previous paste, if any. Cancelled
+    /// when a new paste starts so a slow restore from one transcription
+    /// doesn't clobber a fresh one. Pasteboard `changeCount` at the moment
+    /// we wrote the transcription is captured alongside; if it changes
+    /// (e.g. user manually copies during the restore window) we skip the
+    /// restore so we don't undo their action.
+    private var pendingRestore: DispatchWorkItem?
+
     private lazy var cachedPasteScript: NSAppleScript? = {
         let script = NSAppleScript(source: """
             tell application "System Events"
@@ -23,6 +39,11 @@ final class PasteService: OutputPasting {
     }
 
     func paste(text: String) {
+        // A pending restore from a previous paste would clobber this new
+        // transcription if it fires after we set the clipboard. Cancel it now.
+        pendingRestore?.cancel()
+        pendingRestore = nil
+
         if !AXIsProcessTrusted() {
             // PermissionsManager already prompts for accessibility once at first
             // launch (see Constants.Keys.hasPromptedAccessibility). Re-triggering
@@ -53,17 +74,45 @@ final class PasteService: OutputPasting {
             .bool(forKey: Constants.Keys.restoreClipboardAfterPaste)
         let snapshot = restoreClipboard ? captureClipboardSnapshot() : nil
         copyToClipboard(text: text)
+        let changeCountAfterSet = NSPasteboard.general.changeCount
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
-            self?.simulateCommandV()
-            self?.savedFrontmostApp = nil
-            // Wait for the receiving app to finish reading the pasteboard
-            // before we put the user's prior contents back.
-            if let snapshot {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-                    self?.restoreClipboardSnapshot(snapshot)
-                }
-            }
+            guard let self else { return }
+            self.simulateCommandV()
+            self.savedFrontmostApp = nil
+            guard let snapshot else { return }
+            self.scheduleClipboardRestore(
+                snapshot: snapshot,
+                expectedChangeCount: changeCountAfterSet
+            )
         }
+    }
+
+    private func scheduleClipboardRestore(
+        snapshot: [(NSPasteboard.PasteboardType, Data)],
+        expectedChangeCount: Int
+    ) {
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            // If the pasteboard changed since we set the transcription, the
+            // user (or another app) wrote something else into the clipboard
+            // during the restore window. Their newer write is more recent
+            // intent than our pre-paste snapshot, so leave it alone.
+            let currentCount = NSPasteboard.general.changeCount
+            guard currentCount == expectedChangeCount else {
+                Logger.paste.debug(
+                    "Clipboard changed during restore window (expected \(expectedChangeCount), got \(currentCount)) — skipping restore"
+                )
+                self.pendingRestore = nil
+                return
+            }
+            self.restoreClipboardSnapshot(snapshot)
+            self.pendingRestore = nil
+        }
+        pendingRestore = work
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + Self.restoreDelay,
+            execute: work
+        )
     }
 
     // MARK: - Clipboard preservation
