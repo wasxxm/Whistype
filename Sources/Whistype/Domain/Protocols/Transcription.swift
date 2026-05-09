@@ -6,6 +6,15 @@ protocol Transcription: AnyObject {
     var loadingStatusPublisher: AnyPublisher<ModelLoadingStatus, Never> { get }
     func loadModel(name: String) async throws
     func transcribe(samples: [Float]) async throws -> String
+    /// Called when recording starts so the engine can wake the Neural Engine
+    /// in parallel with audio capture. Implementations should serialize
+    /// against `transcribe(samples:)` so the user-facing call waits for the
+    /// warmup to finish before issuing the real inference. Default: no-op.
+    func warmUpForTranscribe()
+}
+
+extension Transcription {
+    func warmUpForTranscribe() {}
 }
 
 enum ModelLoadingStatus: Equatable {

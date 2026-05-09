@@ -181,6 +181,11 @@ final class TranscriptionCoordinator: ObservableObject {
         do {
             pasteService.saveFrontmostApp()
             try audioRecorder.startRecording()
+            // Wake the Apple Neural Engine in parallel with audio capture.
+            // macOS puts the ANE into a low-power state after ~30-60s idle,
+            // and the wake-up cost (~500-1500ms) lands on the user's first
+            // transcribe unless we absorb it during recording.
+            transcriptionService.warmUpForTranscribe()
             state = .recording(startTime: .now)
             Logger.coordinator.info("Recording started")
         } catch {
